@@ -106,6 +106,7 @@ class DoseOut(BaseModel):
 class ChatIn(BaseModel):
     conversation_id: int | None = None
     message: str
+    lang: str = "en"  # "en" | "zh" — language for the AI reply
 
 
 class ChatOut(BaseModel):

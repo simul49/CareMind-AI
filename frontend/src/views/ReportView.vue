@@ -2,8 +2,10 @@
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { api, fmtDay } from "@/services/api";
+import { useI18n } from "@/i18n";
 
 const router = useRouter();
+const { t, isZh } = useI18n();
 const reports = ref<any[]>([]);
 const loading = ref(true);
 const uploading = ref(false);
@@ -21,12 +23,12 @@ const file = ref<File | null>(null);
 const openId = ref<number | null>(null);
 const detail = ref<any>(null);
 
-const TYPES: Record<string, { label: string; icon: string }> = {
-  lab: { label: "Lab test", icon: "LAB" },
-  blood: { label: "Blood test", icon: "BLD" },
-  imaging: { label: "Imaging / X-ray", icon: "IMG" },
-  discharge: { label: "Discharge summary", icon: "DIS" },
-  other: { label: "Other", icon: "DOC" },
+const TYPES: Record<string, { key: string; icon: string }> = {
+  lab: { key: "rep.typeLab", icon: "LAB" },
+  blood: { key: "rep.typeBlood", icon: "BLD" },
+  imaging: { key: "rep.typeImaging", icon: "IMG" },
+  discharge: { key: "rep.typeDischarge", icon: "DIS" },
+  other: { key: "rep.typeOther", icon: "DOC" },
 };
 
 const flagStyle = (flag: string) => {
@@ -37,7 +39,7 @@ const flagStyle = (flag: string) => {
 };
 
 const flagLabel = (flag: string) =>
-  flag === "normal" ? "OK" : flag === "low" ? "Low" : flag === "high" ? "High" : "Critical";
+  flag === "normal" ? t("rep.flagOk") : flag === "low" ? t("rep.flagLow") : flag === "high" ? t("rep.flagHigh") : t("rep.flagCritical");
 
 const pickFile = (e: Event) => {
   const el = e.target as HTMLInputElement;
@@ -60,7 +62,7 @@ async function upload() {
   error.value = "";
   done.value = "";
   if (!file.value) {
-    error.value = "Please choose a file (PDF or image).";
+    error.value = t("rep.fileNeeded");
     return;
   }
   uploading.value = true;
@@ -75,7 +77,7 @@ async function upload() {
     showForm.value = false;
     title.value = "";
     file.value = null;
-    done.value = `Report "${created.title}" uploaded & analyzed.`;
+    done.value = t("rep.uploaded", { title: created.title });
     await toggle(created.id);
   } catch (e: any) {
     error.value = e.message;
@@ -104,15 +106,18 @@ async function shareWithFamily(r: any) {
   try {
     const convs = await api("/care/conversations");
     if (!convs.length) {
-      error.value = "No family conversation available yet.";
+      error.value = t("rep.noConv");
       return;
     }
     const snippet = (r.summary || "").slice(0, 140);
+    const prefix = isZh.value
+      ? `我的报告「${r.title}」（${fmtDay(r.report_date)}）：`
+      : `My report "${r.title}" (${fmtDay(r.report_date)}): `;
     await api(`/care/conversations/${convs[0].id}/messages`, {
       method: "POST",
-      body: { content: `My report "${r.title}" (${fmtDay(r.report_date)}): ${snippet}` },
+      body: { content: `${prefix}${snippet}` },
     });
-    done.value = "Shared with your family chat.";
+    done.value = t("rep.shared");
     router.push("/app/chat");
   } catch (e: any) {
     error.value = e.message;
@@ -122,7 +127,9 @@ async function shareWithFamily(r: any) {
 function askCareMind(r: any) {
   sessionStorage.setItem(
     "caremind_question",
-    `Please explain my report "${r.title}" (${fmtDay(r.report_date)}) in simple words — anything I should discuss with my doctor?`,
+    isZh.value
+      ? `请用大白话解释我的报告「${r.title}」（${fmtDay(r.report_date)}）— 有什么需要和医生讨论的吗？`
+      : `Please explain my report "${r.title}" (${fmtDay(r.report_date)}) in simple words — anything I should discuss with my doctor?`,
   );
   router.push("/app/ai");
 }
@@ -132,10 +139,10 @@ function askCareMind(r: any) {
   <div class="space-y-5">
     <div class="flex items-center justify-between">
       <div>
-        <h2 class="text-2xl font-extrabold">My reports</h2>
-        <p class="text-sm text-ink/60">Upload medical reports — CareMind reads & explains them.</p>
+        <h2 class="text-2xl font-extrabold">{{ t("rep.title") }}</h2>
+        <p class="text-sm text-ink/60">{{ t("rep.sub") }}</p>
       </div>
-      <button class="btn-primary" @click="showForm = !showForm">{{ showForm ? "Cancel" : "+ Upload" }}</button>
+      <button class="btn-primary" @click="showForm = !showForm">{{ showForm ? t("rep.cancel") : "+ " + t("rep.upload") }}</button>
     </div>
 
     <p v-if="done" class="rounded-2xl bg-teal-light px-4 py-3 font-bold text-teal-dark">{{ done }}</p>
@@ -143,44 +150,44 @@ function askCareMind(r: any) {
 
     <!-- Upload form -->
     <div v-if="showForm" class="card space-y-4">
-      <h3 class="text-lg font-extrabold">Upload a report</h3>
+      <h3 class="text-lg font-extrabold">{{ t("rep.uploadTitle") }}</h3>
       <div>
-        <label class="label">File (PDF, PNG or JPG)</label>
+        <label class="label">{{ t("rep.fileLabel") }}</label>
         <label
           class="mt-1 flex cursor-pointer items-center justify-center gap-3 rounded-3xl border-2 border-dashed border-teal/40 bg-teal-light/50 px-4 py-6 text-center font-bold text-teal-dark transition hover:bg-teal-light"
         >
-          <span>{{ file ? file.name : "Tap to choose a file" }}</span>
+          <span>{{ file ? file.name : t("rep.chooseFile") }}</span>
           <input type="file" accept=".pdf,.png,.jpg,.jpeg" class="hidden" @change="pickFile" />
         </label>
       </div>
       <div class="grid grid-cols-2 gap-3">
         <div>
-          <label class="label">Report type</label>
+          <label class="label">{{ t("rep.reportType") }}</label>
           <select v-model="type" class="input mt-1">
-            <option v-for="(v, k) in TYPES" :key="k" :value="k">{{ v.label }}</option>
+            <option v-for="(v, k) in TYPES" :key="k" :value="k">{{ t(v.key) }}</option>
           </select>
         </div>
         <div>
-          <label class="label">Date</label>
+          <label class="label">{{ t("rep.date") }}</label>
           <input v-model="date" type="date" class="input mt-1" />
         </div>
       </div>
       <div>
-        <label class="label">Title</label>
-        <input v-model="title" class="input mt-1" placeholder="e.g. Blood test report" />
+        <label class="label">{{ t("rep.titleField") }}</label>
+        <input v-model="title" class="input mt-1" :placeholder="t('rep.titlePh')" />
       </div>
       <button class="btn-primary w-full" :disabled="uploading" @click="upload">
-        {{ uploading ? "Analyzing…" : "Upload & analyze" }}
+        {{ uploading ? t("rep.analyzing") : t("rep.uploadAnalyze") }}
       </button>
-      <p class="text-xs text-ink/50">Demo note: analysis is instant and simulated — no data leaves your device.</p>
+      <p class="text-xs text-ink/50">{{ t("rep.demoNote") }}</p>
     </div>
 
     <!-- Reports list -->
-    <div v-if="loading" class="py-16 text-center text-ink/50">Loading…</div>
+    <div v-if="loading" class="py-16 text-center text-ink/50">{{ t("common.loading") }}</div>
 
     <div v-else-if="!reports.length && !showForm" class="card py-10 text-center">
-      <p class="mt-3 font-extrabold text-lg">No reports yet</p>
-      <p class="mt-1 text-ink/60">Upload your first report and let CareMind help you understand it.</p>
+      <p class="mt-3 font-extrabold text-lg">{{ t("rep.empty") }}</p>
+      <p class="mt-1 text-ink/60">{{ t("rep.emptySub") }}</p>
     </div>
 
     <div v-for="r in reports" :key="r.id" class="card">
@@ -190,27 +197,27 @@ function askCareMind(r: any) {
         </span>
         <div class="min-w-0 flex-1">
           <p class="font-extrabold text-lg leading-snug">{{ r.title }}</p>
-          <p class="text-sm text-ink/60">{{ fmtDay(r.report_date) }} · {{ TYPES[r.report_type]?.label || r.report_type }}</p>
+          <p class="text-sm text-ink/60">{{ fmtDay(r.report_date) }} · {{ t(TYPES[r.report_type]?.key || "rep.typeOther") }}</p>
         </div>
         <div class="text-ink/40 text-xl">{{ openId === r.id ? "▾" : "▸" }}</div>
       </button>
 
       <p v-if="r.summary" class="mt-3 rounded-2xl bg-cream px-4 py-3 text-sm leading-relaxed text-ink/80">
-        <b class="text-teal-dark">CareMind says:</b> {{ r.summary }}
+        <b class="text-teal-dark">{{ t("rep.careMindSays") }}</b> {{ r.summary }}
       </p>
 
       <!-- Detail -->
       <div v-if="openId === r.id" class="mt-4 space-y-3">
-        <div v-if="!detail" class="py-6 text-center text-ink/50">Reading report…</div>
+        <div v-if="!detail" class="py-6 text-center text-ink/50">{{ t("rep.reading") }}</div>
         <template v-else>
           <div class="overflow-hidden rounded-3xl border border-ink/10">
             <table class="w-full text-left text-sm">
               <thead class="bg-cream text-xs font-bold uppercase text-ink/50">
                 <tr>
-                  <th class="px-4 py-3">Test</th>
-                  <th class="px-3 py-3">Result</th>
-                  <th class="px-3 py-3">Range</th>
-                  <th class="px-4 py-3 text-right">Flag</th>
+                  <th class="px-4 py-3">{{ t("rep.test") }}</th>
+                  <th class="px-3 py-3">{{ t("rep.result") }}</th>
+                  <th class="px-3 py-3">{{ t("rep.range") }}</th>
+                  <th class="px-4 py-3 text-right">{{ t("rep.flag") }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -225,10 +232,10 @@ function askCareMind(r: any) {
               </tbody>
             </table>
           </div>
-          <p class="text-xs text-ink/50">Note: CareMind analysis is a friendly helper, not a diagnosis. Always confirm with your doctor.</p>
+          <p class="text-xs text-ink/50">{{ t("rep.note") }}</p>
           <div class="flex gap-3">
-            <button class="btn-primary flex-1" @click="askCareMind(r)">Explain it to me</button>
-            <button class="btn-ghost flex-1" @click="shareWithFamily(r)">Share with family</button>
+            <button class="btn-primary flex-1" @click="askCareMind(r)">{{ t("rep.explain") }}</button>
+            <button class="btn-ghost flex-1" @click="shareWithFamily(r)">{{ t("rep.shareFamily") }}</button>
           </div>
         </template>
       </div>

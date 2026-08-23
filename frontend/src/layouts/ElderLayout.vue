@@ -3,10 +3,13 @@ import { computed, onMounted, onUnmounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import { api } from "@/services/api";
+import { useI18n } from "@/i18n";
+import LangSwitcher from "@/components/LangSwitcher.vue";
 
 const route = useRoute();
 const router = useRouter();
 const auth = useAuthStore();
+const { t } = useI18n();
 
 const badgeCount = ref(0);
 let badgeTimer: ReturnType<typeof setInterval> | null = null;
@@ -30,25 +33,25 @@ onUnmounted(() => {
   if (badgeTimer) clearInterval(badgeTimer);
 });
 
-const roleTabs: Record<string, { name: string; label: string }[]> = {
+const roleTabs: Record<string, { name: string; labelKey: string }[]> = {
   elder: [
-    { name: "home", label: "Home" },
-    { name: "health", label: "Health" },
-    { name: "ai", label: "CareMind" },
-    { name: "moments", label: "Moments" },
-    { name: "profile", label: "Me" },
+    { name: "home", labelKey: "nav.home" },
+    { name: "health", labelKey: "nav.health" },
+    { name: "ai", labelKey: "nav.ai" },
+    { name: "moments", labelKey: "nav.moments" },
+    { name: "profile", labelKey: "nav.me" },
   ],
   family: [
-    { name: "home", label: "Home" },
-    { name: "chat", label: "Chat" },
-    { name: "moments", label: "Moments" },
-    { name: "profile", label: "Me" },
+    { name: "home", labelKey: "nav.home" },
+    { name: "chat", labelKey: "nav.chat" },
+    { name: "moments", labelKey: "nav.moments" },
+    { name: "profile", labelKey: "nav.me" },
   ],
   caregiver: [
-    { name: "home", label: "Home" },
-    { name: "chat", label: "Chat" },
-    { name: "moments", label: "Moments" },
-    { name: "profile", label: "Me" },
+    { name: "home", labelKey: "nav.home" },
+    { name: "chat", labelKey: "nav.chat" },
+    { name: "moments", labelKey: "nav.moments" },
+    { name: "profile", labelKey: "nav.me" },
   ],
 };
 
@@ -56,7 +59,10 @@ const tabs = computed(() => roleTabs[auth.user?.role as string] || roleTabs.elde
 const isElder = computed(() => auth.user?.role === "elder");
 
 const activeTab = computed(() => route.name as string);
-const pageTitle = computed(() => tabs.value.find((t) => t.name === activeTab.value)?.label || "");
+const pageTitle = computed(() => {
+  const tab = tabs.value.find((x) => x.name === activeTab.value);
+  return tab ? t(tab.labelKey) : "";
+});
 
 const initials = computed(() =>
   (auth.user?.full_name || "U").split(" ").map((s) => s[0]).slice(0, 2).join(""),
@@ -76,17 +82,20 @@ const initials = computed(() =>
           <p class="text-lg font-extrabold leading-tight">{{ auth.user?.full_name }}</p>
         </div>
       </div>
-      <RouterLink
-        to="/notifications"
-        class="relative rounded-2xl bg-white px-4 py-2.5 text-sm font-extrabold text-ink shadow-card"
-        title="Alerts"
-      >
-        Alerts
-        <span
-          v-if="badgeCount > 0"
-          class="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-rose px-1 text-[0.65rem] font-extrabold text-white"
-        >{{ badgeCount > 9 ? "9+" : badgeCount }}</span>
-      </RouterLink>
+      <div class="flex items-center gap-2">
+        <LangSwitcher />
+        <RouterLink
+          to="/notifications"
+          class="relative rounded-2xl bg-white px-4 py-2.5 text-sm font-extrabold text-ink shadow-card"
+          :title="t('nav.alerts')"
+        >
+          {{ t("nav.alerts") }}
+          <span
+            v-if="badgeCount > 0"
+            class="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-rose px-1 text-[0.65rem] font-extrabold text-white"
+          >{{ badgeCount > 9 ? "9+" : badgeCount }}</span>
+        </RouterLink>
+      </div>
     </header>
 
     <!-- Main -->
@@ -125,7 +134,7 @@ const initials = computed(() =>
           "
           @click="router.push('/app/' + t.name)"
         >
-          {{ t.label }}
+          {{ t(t.labelKey) }}
         </button>
       </div>
     </nav>

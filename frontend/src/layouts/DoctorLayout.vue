@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { useRouter } from "vue-router";
+import { useI18n } from "@/i18n";
+import LangSwitcher from "@/components/LangSwitcher.vue";
 
 const router = useRouter();
+const { t } = useI18n();
 const tabs = [
-  { path: "/app/doctor", label: "Patients" },
-  { path: "/app/profile", label: "Me" },
+  { path: "/app/doctor", labelKey: "nav.patients" },
+  { path: "/app/profile", labelKey: "nav.me" },
 ];
 </script>
 
@@ -17,12 +20,15 @@ const tabs = [
           <span class="grid h-9 w-9 place-items-center rounded-xl bg-teal text-xs font-extrabold text-white">CM</span>
           <div>
             <p class="text-sm font-extrabold leading-tight">CareMind</p>
-            <p class="text-[0.7rem] font-bold text-teal-dark">Doctor Portal</p>
+            <p class="text-[0.7rem] font-bold text-teal-dark">{{ t("doc.portal") }}</p>
           </div>
         </div>
-        <RouterLink to="/app/notifications" class="rounded-2xl bg-white px-4 py-2.5 text-sm font-extrabold shadow-card">
-          Alerts
-        </RouterLink>
+        <div class="flex items-center gap-2">
+          <LangSwitcher />
+          <RouterLink to="/app/notifications" class="rounded-2xl bg-white px-4 py-2.5 text-sm font-extrabold shadow-card">
+            {{ t("nav.alerts") }}
+          </RouterLink>
+        </div>
       </div>
     </header>
 
@@ -44,7 +50,7 @@ const tabs = [
               : 'text-ink/50 hover:bg-teal/10'
           "
         >
-          {{ t.label }}
+          {{ t(t.labelKey) }}
         </RouterLink>
       </div>
     </nav>

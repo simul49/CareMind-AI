@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { nextTick, onMounted, ref } from "vue";
 import { api } from "@/services/api";
+import { useI18n } from "@/i18n";
 
+const { t, isZh } = useI18n();
 const messages = ref<any[]>([]);
 const input = ref("");
 const conversationId = ref<number | null>(null);
@@ -17,12 +19,7 @@ const voiceSupported =
 const ttsSupported = typeof window !== "undefined" && "speechSynthesis" in window;
 let recognition: any = null;
 
-const chips = [
-  "How is my blood pressure this week?",
-  "I'm feeling a little dizzy lately",
-  "Remind me about my medicines",
-  "What did I do for exercise this week?",
-];
+const chips = ["ai.chip1", "ai.chip2", "ai.chip3", "ai.chip4"];
 
 onMounted(async () => {
   try {
@@ -55,7 +52,7 @@ function speak(text: string) {
     window.speechSynthesis.cancel();
     const clean = text.replace(/\p{Extended_Pictographic}/gu, "");
     const u = new SpeechSynthesisUtterance(clean);
-    u.lang = "en-US";
+    u.lang = isZh.value ? "zh-CN" : "en-US";
     u.rate = 0.95;
     u.pitch = 1.05;
     window.speechSynthesis.speak(u);
@@ -72,7 +69,7 @@ function toggleMic() {
   if (!voiceSupported) return;
   const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
   recognition = recognition || new SR();
-  recognition.lang = "en-US";
+  recognition.lang = isZh.value ? "zh-CN" : "en-US";
   recognition.interimResults = false;
   recognition.onresult = (e: any) => {
     const t = e.results[0][0].transcript;
@@ -101,7 +98,7 @@ const send = async (text?: string) => {
   try {
     const res = await api("/ai/chat", {
       method: "POST",
-      body: { conversation_id: conversationId.value, message: content },
+      body: { conversation_id: conversationId.value, message: content, lang: isZh.value ? "zh" : "en" },
     });
     conversationId.value = res.conversation_id;
     messages.value.push({
@@ -112,7 +109,7 @@ const send = async (text?: string) => {
     });
     speak(res.reply);
   } catch (e: any) {
-    messages.value.push({ id: Date.now() + 2, sender: "assistant", content: "Sorry, I couldn't reach my brain. Please try again.", created_at: new Date().toISOString() });
+    messages.value.push({ id: Date.now() + 2, sender: "assistant", content: t("ai.error"), created_at: new Date().toISOString() });
   } finally {
     loading.value = false;
     scrollDown();
@@ -125,10 +122,9 @@ const send = async (text?: string) => {
     <div ref="chatsEl" class="flex-1 space-y-3 overflow-y-auto pb-3 pr-1">
       <div v-if="starterVisible" class="rounded-3xl bg-teal p-5 text-white shadow-soft">
         <span class="grid h-14 w-14 place-items-center rounded-2xl bg-white/15 text-xl font-extrabold">AI</span>
-        <h3 class="mt-1 text-xl font-extrabold">Hi! I'm CareMind</h3>
+        <h3 class="mt-1 text-xl font-extrabold">{{ t("ai.hi") }}</h3>
         <p class="mt-1 text-teal-light">
-          I'm your health companion. I know your health records, medicines and care plan —
-          and I'm here to help you understand them. I never replace your doctor.
+          {{ t("ai.intro") }}
         </p>
         <button
           v-if="ttsSupported"
@@ -136,7 +132,7 @@ const send = async (text?: string) => {
           :class="{ 'bg-white text-teal-dark': speakOn }"
           @click="speakOn = !speakOn"
         >
-          {{ speakOn ? "Spoken replies: ON — tap to turn off" : "Tap to hear replies spoken aloud" }}
+          {{ speakOn ? t("ai.speakOn") : t("ai.speakOff") }}
         </button>
       </div>
 
@@ -146,13 +142,13 @@ const send = async (text?: string) => {
       </div>
 
       <div v-if="loading" class="mr-auto max-w-[85%] rounded-3xl bg-white px-4 py-3 shadow-card">
-        <span class="text-ink/50">CareMind is typing<span class="animate-pulse">…</span></span>
+        <span class="text-ink/50">{{ t("ai.typing") }}<span class="animate-pulse">…</span></span>
       </div>
     </div>
 
     <div v-if="starterVisible" class="mb-2 flex flex-wrap gap-2">
       <button v-for="c in chips" :key="c" class="rounded-2xl bg-teal-light px-4 py-2 text-left text-sm font-bold text-teal-dark transition hover:bg-teal/20"
-              @click="send(c)">{{ c }}</button>
+              @click="send(t(c))">{{ t(c) }}</button>
     </div>
 
     <form class="flex gap-2" @submit.prevent="send()">
@@ -161,16 +157,16 @@ const send = async (text?: string) => {
         type="button"
         class="grid h-12 shrink-0 place-items-center rounded-2xl px-4 text-sm font-extrabold transition"
         :class="listening ? 'animate-pulse bg-rose text-white' : 'bg-white text-ink shadow-card'"
-        :title="listening ? 'Listening… tap to stop' : 'Speak to CareMind'"
+        :title="listening ? t('ai.listening') : t('ai.speakTo')"
         @click="toggleMic"
       >
-        Talk
+        {{ t("ai.talk") }}
       </button>
-      <input v-model="input" class="input flex-1" placeholder="Type a message…" />
-      <button type="submit" class="btn-primary px-6" :disabled="loading">Send</button>
+      <input v-model="input" class="input flex-1" :placeholder="t('ai.placeholder')" />
+      <button type="submit" class="btn-primary px-6" :disabled="loading">{{ t("ai.send") }}</button>
     </form>
     <p v-if="listening" class="mt-1 text-center text-xs font-bold text-rose animate-pulse">
-      Listening… speak now, then stop.
+      {{ t("ai.listeningHint") }}
     </p>
   </div>
 </template>

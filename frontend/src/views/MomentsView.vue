@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { api } from "@/services/api";
+import { api, fmtDay, fmtTime } from "@/services/api";
+import { useI18n } from "@/i18n";
+
+const { t } = useI18n();
 
 const posts = ref<any[]>([]);
 const newPost = ref("");
@@ -36,10 +39,10 @@ const toggleReact = async (p: any) => {
 <template>
   <div class="space-y-4">
     <div class="card">
-      <p class="label">Share a moment</p>
+      <p class="label">{{ t("mom.share") }}</p>
       <textarea v-model="newPost" rows="2" class="input mt-2 resize-none"
-                placeholder="How was your day? What made you smile today?"></textarea>
-      <button class="btn-primary mt-3 w-full" :disabled="sending" @click="post">Share</button>
+                :placeholder="t('mom.placeholder')"></textarea>
+      <button class="btn-primary mt-3 w-full" :disabled="sending" @click="post">{{ t("mom.shareBtn") }}</button>
     </div>
 
     <div v-for="p in posts" :key="p.id" class="card">
@@ -49,7 +52,7 @@ const toggleReact = async (p: any) => {
         </div>
         <div>
           <p class="font-extrabold">{{ p.author_name }}</p>
-          <p class="text-xs text-ink/50">{{ new Date(p.created_at).toLocaleString() }}</p>
+          <p class="text-xs text-ink/50">{{ fmtDay(p.created_at) }} · {{ fmtTime(p.created_at) }}</p>
         </div>
       </div>
       <p class="mt-3 whitespace-pre-wrap text-[1.05rem] leading-relaxed">{{ p.content }}</p>
@@ -57,9 +60,9 @@ const toggleReact = async (p: any) => {
         <button class="rounded-2xl px-4 py-2 font-bold transition"
                 :class="p.my_reaction ? 'bg-rose/10 text-rose' : 'bg-cream text-ink/60'"
                 @click="toggleReact(p)">
-          {{ p.my_reaction ? "Loved" : "Love this" }} · {{ p.reaction_count }}
+          {{ p.my_reaction ? t("mom.loved") : t("mom.loveThis") }} · {{ p.reaction_count }}
         </button>
-        <span class="text-sm font-semibold text-ink/40">Care circle only</span>
+        <span class="text-sm font-semibold text-ink/40">{{ t("mom.circleOnly") }}</span>
       </div>
     </div>
   </div>

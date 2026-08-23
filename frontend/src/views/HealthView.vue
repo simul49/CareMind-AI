@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import { api, fmtDay, fmtTime } from "@/services/api";
+import { useI18n } from "@/i18n";
 
+const { t } = useI18n();
 const timeline = ref<any[]>([]);
 const loading = ref(true);
 const showQuick = ref(false);
@@ -25,17 +27,23 @@ onMounted(async () => {
   }
 });
 
-const labelFor = (t: string) =>
-  ({ blood_pressure: "Blood pressure", heart_rate: "Heart rate", sleep: "Sleep",
-     activity: "Activity", mood: "Mood", weight: "Weight" }[t] || t);
+const labelFor = (type: string) =>
+  ({
+    blood_pressure: t("health.bp"),
+    heart_rate: t("health.heartRate"),
+    sleep: t("health.sleep"),
+    activity: t("health.activity"),
+    mood: t("health.mood"),
+    weight: t("health.weight"),
+  }[type] || type);
 
 const valText = (m: any) => {
   const v = m.values;
   if (m.metric_type === "blood_pressure") return `${v.systolic}/${v.diastolic} mmHg`;
   if (m.metric_type === "heart_rate") return `${v.bpm} bpm`;
   if (m.metric_type === "sleep") return `${v.sleep_hours} h`;
-  if (m.metric_type === "activity") return `${v.steps?.toLocaleString() ?? ""} steps`;
-  if (m.metric_type === "mood") return ["Poor", "Low", "Okay", "Good", "Great"][v.mood_level - 1];
+  if (m.metric_type === "activity") return `${v.steps?.toLocaleString() ?? ""} ${t("health.stepsUnit")}`;
+  if (m.metric_type === "mood") return t(["mood.poor", "mood.low", "mood.okay", "mood.good", "mood.great"][v.mood_level - 1] || "mood.okay");
   if (m.metric_type === "weight") return `${v.kg} kg`;
   return JSON.stringify(v);
 };
@@ -65,53 +73,53 @@ const submitQuick = async () => {
 <template>
   <div class="space-y-5">
     <section>
-      <h3 class="text-xl font-extrabold">Quick log</h3>
+      <h3 class="text-xl font-extrabold">{{ t("health.quickLog") }}</h3>
       <div class="mt-3 grid grid-cols-3 gap-3">
         <button class="card text-center transition hover:-translate-y-0.5" @click="openQuick('bp')">
-          <span class="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-teal-light text-xs font-extrabold text-teal-dark">BP</span><p class="mt-1 font-extrabold">Blood pressure</p>
+          <span class="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-teal-light text-xs font-extrabold text-teal-dark">BP</span><p class="mt-1 font-extrabold">{{ t("health.bp") }}</p>
         </button>
         <button class="card text-center transition hover:-translate-y-0.5" @click="openQuick('mood')">
-          <span class="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-teal-light text-xs font-extrabold text-teal-dark">Feel</span><p class="mt-1 font-extrabold">Feeling</p>
+          <span class="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-teal-light text-xs font-extrabold text-teal-dark">{{ t("health.mood").slice(0, 4) }}</span><p class="mt-1 font-extrabold">{{ t("health.feeling") }}</p>
         </button>
         <button class="card text-center transition hover:-translate-y-0.5" @click="openQuick('walk')">
-          <span class="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-teal-light text-xs font-extrabold text-teal-dark">Walk</span><p class="mt-1 font-extrabold">Walk</p>
+          <span class="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-teal-light text-xs font-extrabold text-teal-dark">{{ t("health.walk") }}</span><p class="mt-1 font-extrabold">{{ t("health.walk") }}</p>
         </button>
       </div>
     </section>
 
     <section v-if="showQuick" class="card bg-teal-light/50">
       <template v-if="quickType === 'bp'">
-        <h4 class="text-xl font-extrabold">Log blood pressure</h4>
+        <h4 class="text-xl font-extrabold">{{ t("health.logBp") }}</h4>
         <div class="mt-3 grid grid-cols-3 gap-3">
-          <div><label class="label">Systolic</label><input v-model="form.systolic" type="number" class="input mt-1" placeholder="138" /></div>
-          <div><label class="label">Diastolic</label><input v-model="form.diastolic" type="number" class="input mt-1" placeholder="86" /></div>
-          <div><label class="label">Pulse</label><input v-model="form.bpm" type="number" class="input mt-1" placeholder="74" /></div>
+          <div><label class="label">{{ t("health.systolic") }}</label><input v-model="form.systolic" type="number" class="input mt-1" placeholder="138" /></div>
+          <div><label class="label">{{ t("health.diastolic") }}</label><input v-model="form.diastolic" type="number" class="input mt-1" placeholder="86" /></div>
+          <div><label class="label">{{ t("health.pulse") }}</label><input v-model="form.bpm" type="number" class="input mt-1" placeholder="74" /></div>
         </div>
       </template>
       <template v-else-if="quickType === 'mood'">
-        <h4 class="text-xl font-extrabold">How do you feel?</h4>
+        <h4 class="text-xl font-extrabold">{{ t("health.howFeel") }}</h4>
         <div class="mt-3 grid grid-cols-5 gap-2">
-          <button v-for="(label, i) in ['Poor', 'Low', 'Okay', 'Good', 'Great']" :key="i"
+          <button v-for="(key, i) in ['mood.poor', 'mood.low', 'mood.okay', 'mood.good', 'mood.great']" :key="i"
                   class="rounded-2xl bg-white px-2 py-3 text-sm font-extrabold"
                   :class="{ 'ring-4 ring-teal': form.mood_level === i + 1 }"
-                  @click="form.mood_level = i + 1">{{ label }}</button>
+                  @click="form.mood_level = i + 1">{{ t(key) }}</button>
         </div>
       </template>
       <template v-else>
-        <h4 class="text-xl font-extrabold">Log a walk</h4>
-        <div class="mt-3"><label class="label">Steps</label>
-          <input v-model="form.steps" type="number" class="input mt-1" placeholder="e.g. 2000" /></div>
+        <h4 class="text-xl font-extrabold">{{ t("health.logWalk") }}</h4>
+        <div class="mt-3"><label class="label">{{ t("health.steps") }}</label>
+          <input v-model="form.steps" type="number" class="input mt-1" :placeholder="t('health.walkPh')" /></div>
       </template>
       <div class="mt-4 flex gap-3">
-        <button class="btn-primary flex-1" @click="submitQuick">Save</button>
-        <button class="btn-ghost" @click="showQuick = false">Cancel</button>
+        <button class="btn-primary flex-1" @click="submitQuick">{{ t("common.save") }}</button>
+        <button class="btn-ghost" @click="showQuick = false">{{ t("common.cancel") }}</button>
       </div>
     </section>
 
     <section>
-      <h3 class="text-xl font-extrabold">Health timeline</h3>
-      <div v-if="loading" class="py-10 text-center text-ink/50">Loading…</div>
-      <div v-else-if="timeline.length === 0" class="card text-center text-ink/60">No records yet.</div>
+      <h3 class="text-xl font-extrabold">{{ t("health.timeline") }}</h3>
+      <div v-if="loading" class="py-10 text-center text-ink/50">{{ t("common.loading") }}</div>
+      <div v-else-if="timeline.length === 0" class="card text-center text-ink/60">{{ t("health.noRecords") }}</div>
       <div v-for="(items, day) in byDay" :key="day" class="mt-4">
         <p class="label">{{ day }}</p>
         <div v-for="m in items" :key="m.id" class="card mt-2 flex items-center justify-between py-4">

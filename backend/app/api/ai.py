@@ -12,7 +12,7 @@ router = APIRouter(prefix="/ai", tags=["ai"])
 
 @router.post("/chat", response_model=ChatOut)
 def chat(data: ChatIn, user: User = Depends(get_current_user)):
-    conv_id, reply, sources = ai_service.chat_with_user(user, data.conversation_id, data.message)
+    conv_id, reply, sources = ai_service.chat_with_user(user, data.conversation_id, data.message, data.lang)
     return ChatOut(conversation_id=conv_id, reply=reply, sources=sources)
 
 

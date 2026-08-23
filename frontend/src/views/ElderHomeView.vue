@@ -3,16 +3,20 @@ import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import { api, fmtTime } from "@/services/api";
+import { useI18n } from "@/i18n";
 
 const router = useRouter();
 const auth = useAuthStore();
+const { t } = useI18n();
 
 const greeting = computed(() => {
   const h = new Date().getHours();
-  if (h < 12) return "Good morning";
-  if (h < 18) return "Good afternoon";
-  return "Good evening";
+  if (h < 12) return t("greeting.morning");
+  if (h < 18) return t("greeting.afternoon");
+  return t("greeting.evening");
 });
+
+const moodLabels = ["mood.great", "mood.good", "mood.okay", "mood.low", "mood.poor"];
 
 const firstName = computed(() => (auth.user?.full_name || "").split(" ")[0]);
 const isElder = computed(() => auth.user?.role === "elder");
@@ -73,40 +77,56 @@ const completeChallenge = async () => {
     challengeBusy.value = false;
   }
 };
+
+// Localize seeded challenge cards (keyed by the stable badge slug from the backend)
+const challengeLocal = computed(() => {
+  const c = challenge.value;
+  if (!c) return null;
+  const key = String(c.badge || "").toLowerCase();
+  const known = ["walk", "water", "stretch", "mood", "friends", "sleep", "mind"];
+  if (!known.includes(key)) return c;
+  return {
+    ...c,
+    badge: t(`challenge.${key}.badge`),
+    category: t(`challenge.cat.${key}`),
+    title: t(`challenge.${key}.title`),
+    goal: t(`challenge.${key}.goal`),
+  };
+});
 </script>
 
 <template>
   <div class="space-y-5">
-    <div v-if="loading" class="py-20 text-center text-ink/50 text-lg">Loading…</div>
+    <div v-if="loading" class="py-20 text-center text-ink/50 text-lg">{{ t("common.loading") }}</div>
 
     <!-- ELDER HOME -->
     <template v-else-if="isElder">
       <div class="rounded-3xl bg-gradient-to-br from-teal to-teal-dark p-6 text-white shadow-soft">
         <p class="text-lg font-semibold text-teal-light">{{ greeting }}, {{ firstName }}</p>
-        <h2 class="mt-1 text-3xl font-extrabold">How are you feeling today?</h2>
+        <h2 class="mt-1 text-3xl font-extrabold">{{ t("home.howFeel") }}</h2>
         <div class="mt-4 grid grid-cols-5 gap-2">
-          <button v-for="(label, i) in ['Great', 'Good', 'Okay', 'Low', 'Poor']" :key="i"
+          <button v-for="(key, i) in moodLabels" :key="i"
                   class="rounded-2xl bg-white/15 px-2 py-3 text-sm font-extrabold transition hover:bg-white/30"
                   :class="{ 'ring-4 ring-white/70': mood === i + 1 }"
                   @click="logMood(i + 1)">
-            {{ label }}
+            {{ t(key) }}
           </button>
         </div>
-        <p v-if="mood" class="mt-3 text-sm font-semibold text-teal-light">Thanks — I've noted that for your care circle.</p>
+        <p v-if="mood" class="mt-3 text-sm font-semibold text-teal-light">{{ t("mood.thanks") }}</p>
       </div>
 
       <!-- Today's Care -->
       <section>
         <div class="flex items-center justify-between">
-          <h3 class="text-xl font-extrabold">Today's Care</h3>
-          <button class="font-bold text-teal" @click="router.push('/app/medicines')">All medicines →</button>
+          <h3 class="text-xl font-extrabold">{{ t("home.todayCare") }}</h3>
+          <button class="font-bold text-teal" @click="router.push('/app/medicines')">{{ t("home.allMeds") }} →</button>
         </div>
         <div v-if="nextDose" class="card mt-3 border-l-8 border-teal">
           <div class="flex items-start gap-4">
             <div class="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-teal-light text-sm font-extrabold text-teal-dark">MED</div>
             <div class="flex-1">
               <p class="text-sm font-bold text-ink/50">
-                {{ nextDose.status === "pending" ? "Next dose" : "Latest dose" }} · {{ nextDose.scheduled_time }}
+                {{ nextDose.status === "pending" ? t("home.nextDose") : t("home.latestDose") }} · {{ nextDose.scheduled_time }}
               </p>
               <h4 class="text-2xl font-extrabold">{{ nextDose.medicine_name }}</h4>
               <p class="text-ink/60">{{ nextDose.dosage ? nextDose.dosage + " " + nextDose.dosage_unit : "" }}
@@ -115,44 +135,44 @@ const completeChallenge = async () => {
           </div>
           <div class="mt-4 flex gap-3">
             <button v-if="nextDose.status === 'pending'" class="btn-primary flex-1" @click="takeDose(nextDose.log_id)">
-              ✓ I took it
+              ✓ {{ t("home.tookIt") }}
             </button>
-            <button v-else class="btn-ghost flex-1">Taken {{ fmtTime(nextDose.taken_at) }} ✓</button>
-            <button class="btn-ghost" @click="router.push('/app/medicines')">All doses</button>
+            <button v-else class="btn-ghost flex-1">{{ t("home.takenAt", { time: fmtTime(nextDose.taken_at) }) }} ✓</button>
+            <button class="btn-ghost" @click="router.push('/app/medicines')">{{ t("home.allDoses") }}</button>
           </div>
         </div>
       </section>
 
       <!-- Today's wellness challenge -->
-      <section v-if="challenge">
+      <section v-if="challengeLocal">
         <div class="flex items-center justify-between">
-          <h3 class="text-xl font-extrabold">Today's challenge</h3>
+          <h3 class="text-xl font-extrabold">{{ t("home.challenge") }}</h3>
           <span class="rounded-xl bg-teal-light px-3 py-1 text-xs font-extrabold text-teal-dark">
-            {{ challenge.week_done }}/7 this week
+            {{ t("home.weekProgress", { done: challengeLocal.week_done }) }}
           </span>
         </div>
         <div class="card mt-3 bg-gradient-to-br from-teal-light/60 to-white">
           <div class="flex items-center gap-4">
             <span class="grid h-16 w-16 shrink-0 place-items-center rounded-3xl bg-white text-lg font-extrabold text-teal-dark shadow-card">
-              {{ challenge.badge }}
+              {{ challengeLocal.badge }}
             </span>
             <div class="flex-1">
-              <p class="text-[0.7rem] font-extrabold uppercase tracking-wide text-teal-dark">{{ challenge.category }}</p>
-              <h4 class="text-xl font-extrabold leading-snug">{{ challenge.title }}</h4>
-              <p class="mt-0.5 text-sm text-ink/60">{{ challenge.goal }}</p>
+              <p class="text-[0.7rem] font-extrabold uppercase tracking-wide text-teal-dark">{{ challengeLocal.category }}</p>
+              <h4 class="text-xl font-extrabold leading-snug">{{ challengeLocal.title }}</h4>
+              <p class="mt-0.5 text-sm text-ink/60">{{ challengeLocal.goal }}</p>
             </div>
           </div>
           <div class="mt-4">
             <button
-              v-if="!challenge.done"
+              v-if="!challengeLocal.done"
               class="btn-primary w-full"
               :disabled="challengeBusy"
               @click="completeChallenge"
             >
-              {{ challengeBusy ? "Completing…" : "✓ I did it!" }}
+              {{ challengeBusy ? t("common.loading") : "✓ " + t("home.didIt") }}
             </button>
             <div v-else class="rounded-2xl bg-teal px-4 py-3 text-center font-extrabold text-white">
-              Done today — beautiful!
+              {{ t("home.doneToday") }}
             </div>
           </div>
         </div>
@@ -160,17 +180,17 @@ const completeChallenge = async () => {
 
       <!-- Quick actions -->
       <section>
-        <h3 class="text-xl font-extrabold">Family & reports</h3>
+        <h3 class="text-xl font-extrabold">{{ t("home.familyReports") }}</h3>
         <div class="mt-3 grid grid-cols-2 gap-3">
           <button class="card flex flex-col items-center gap-1.5 py-4 transition hover:-translate-y-0.5 hover:shadow-card" @click="router.push('/app/chat')">
-            <span class="grid h-12 w-12 place-items-center rounded-2xl bg-teal-light text-xs font-extrabold text-teal-dark">Chat</span>
-            <span class="font-extrabold">Family chat</span>
-            <span class="text-xs text-ink/50">Stay close</span>
+            <span class="grid h-12 w-12 place-items-center rounded-2xl bg-teal-light text-xs font-extrabold text-teal-dark">{{ t("nav.chat") }}</span>
+            <span class="font-extrabold">{{ t("home.familyChat") }}</span>
+            <span class="text-xs text-ink/50">{{ t("home.stayClose") }}</span>
           </button>
           <button class="card flex flex-col items-center gap-1.5 py-4 transition hover:-translate-y-0.5 hover:shadow-card" @click="router.push('/app/reports')">
-            <span class="grid h-12 w-12 place-items-center rounded-2xl bg-teal-light text-xs font-extrabold text-teal-dark">Docs</span>
-            <span class="font-extrabold">My reports</span>
-            <span class="text-xs text-ink/50">AI explains them</span>
+            <span class="grid h-12 w-12 place-items-center rounded-2xl bg-teal-light text-xs font-extrabold text-teal-dark">DOC</span>
+            <span class="font-extrabold">{{ t("home.myReports") }}</span>
+            <span class="text-xs text-ink/50">{{ t("home.aiExplains") }}</span>
           </button>
         </div>
       </section>
@@ -178,30 +198,30 @@ const completeChallenge = async () => {
       <!-- Today's Health -->
       <section>
         <div class="flex items-center justify-between">
-          <h3 class="text-xl font-extrabold">Today's Health</h3>
-          <button class="font-bold text-teal" @click="router.push('/app/health')">Full timeline →</button>
+          <h3 class="text-xl font-extrabold">{{ t("home.todayHealth") }}</h3>
+          <button class="font-bold text-teal" @click="router.push('/app/health')">{{ t("home.fullTimeline") }} →</button>
         </div>
         <div class="mt-3 grid grid-cols-2 gap-3">
           <div class="card">
-            <p class="label">Blood pressure</p>
+            <p class="label">{{ t("home.bp") }}</p>
             <p class="mt-1 text-3xl font-extrabold">
               {{ today?.blood_pressure ? today.blood_pressure.systolic + "/" + today.blood_pressure.diastolic : "—" }}
             </p>
             <p class="text-sm font-semibold" :class="today?.blood_pressure?.systolic > 140 ? 'text-amber' : 'text-teal'">
-              {{ today?.blood_pressure?.systolic > 140 ? "Slightly high" : "Steady" }}
+              {{ today?.blood_pressure?.systolic > 140 ? t("home.slightlyHigh") : t("home.steady") }}
             </p>
           </div>
           <div class="card">
-            <p class="label">Heart rate</p>
+            <p class="label">{{ t("home.heartRate") }}</p>
             <p class="mt-1 text-3xl font-extrabold">{{ today?.heart_rate ? today.heart_rate.bpm + " bpm" : "—" }}</p>
           </div>
           <div class="card">
-            <p class="label">Steps</p>
+            <p class="label">{{ t("home.steps") }}</p>
             <p class="mt-1 text-3xl font-extrabold">{{ (today?.steps ?? 0).toLocaleString() }}</p>
-            <p class="text-sm font-semibold text-teal">Target 4,000</p>
+            <p class="text-sm font-semibold text-teal">{{ t("home.target4000") }}</p>
           </div>
           <div class="card">
-            <p class="label">Sleep</p>
+            <p class="label">{{ t("home.sleep") }}</p>
             <p class="mt-1 text-3xl font-extrabold">{{ today?.sleep_hours ? today.sleep_hours + " h" : "—" }}</p>
           </div>
         </div>
@@ -209,7 +229,7 @@ const completeChallenge = async () => {
 
       <!-- CareMind insight -->
       <section v-if="insights.length">
-        <h3 class="text-xl font-extrabold">From CareMind AI</h3>
+        <h3 class="text-xl font-extrabold">{{ t("home.fromCareMind") }}</h3>
         <div class="card mt-3 bg-gradient-to-br from-amber-light to-white">
           <div class="flex gap-3">
             <span class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-amber-light text-lg font-extrabold text-amber">
@@ -218,7 +238,7 @@ const completeChallenge = async () => {
             <div>
               <p class="font-extrabold">{{ insights[0].title }}</p>
               <p class="mt-1 text-ink/70">{{ insights[0].content }}</p>
-              <button class="mt-3 font-bold text-teal" @click="router.push('/app/ai')">Ask CareMind about it →</button>
+              <button class="mt-3 font-bold text-teal" @click="router.push('/app/ai')">{{ t("home.askAbout") }} →</button>
             </div>
           </div>
         </div>
@@ -228,8 +248,8 @@ const completeChallenge = async () => {
         <div class="flex items-center gap-4">
           <span class="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-rose/10 text-sm font-extrabold text-rose">SOS</span>
           <div class="flex-1">
-            <p class="font-extrabold text-lg">Need help right now?</p>
-            <p class="text-sm text-ink/60">One tap alerts your family and finds the nearest hospital.</p>
+            <p class="font-extrabold text-lg">{{ t("home.needHelp") }}</p>
+            <p class="text-sm text-ink/60">{{ t("home.oneTap") }}</p>
           </div>
           <button class="btn-danger pulse-sos" @click="router.push('/app/emergency')">SOS</button>
         </div>
@@ -239,8 +259,8 @@ const completeChallenge = async () => {
     <!-- FAMILY / CAREGIVER -->
     <template v-else-if="overview">
       <div class="rounded-3xl bg-gradient-to-br from-indigo-500 to-teal-dark p-6 text-white shadow-soft">
-        <p class="text-lg font-semibold">Welcome, {{ firstName }}</p>
-        <h2 class="mt-1 text-3xl font-extrabold">Your family's care</h2>
+        <p class="text-lg font-semibold">{{ t("family.welcome", { name: firstName }) }}</p>
+        <h2 class="mt-1 text-3xl font-extrabold">{{ t("family.yourCare") }}</h2>
       </div>
 
       <div v-for="e in overview.elders" :key="e.id" class="card">
@@ -249,28 +269,28 @@ const completeChallenge = async () => {
             <h3 class="text-2xl font-extrabold">{{ e.name }} <span class="text-lg text-ink/50">({{ e.age }})</span></h3>
             <p class="text-sm text-ink/60">{{ e.city }}</p>
           </div>
-          <div v-if="e.has_active_emergency" class="rounded-2xl bg-rose px-4 py-2 font-extrabold text-white">SOS ACTIVE</div>
+          <div v-if="e.has_active_emergency" class="rounded-2xl bg-rose px-4 py-2 font-extrabold text-white">{{ t("emg.sosActive") }}</div>
         </div>
 
         <div class="mt-4 grid grid-cols-3 gap-3 text-center">
           <div class="rounded-2xl bg-teal-light p-3">
             <p class="text-2xl font-extrabold text-teal-dark">{{ (e.steps_today ?? 0).toLocaleString() }}</p>
-            <p class="text-xs font-bold text-ink/60">Steps today</p>
+            <p class="text-xs font-bold text-ink/60">{{ t("family.stepsToday") }}</p>
           </div>
           <div class="rounded-2xl bg-teal-light p-3">
             <p class="text-2xl font-extrabold text-teal-dark">{{ e.adherence_rate ?? "—" }}%</p>
-            <p class="text-xs font-bold text-ink/60">Medication</p>
+            <p class="text-xs font-bold text-ink/60">{{ t("family.medication") }}</p>
           </div>
           <div class="rounded-2xl bg-teal-light p-3">
             <p class="text-2xl font-extrabold text-teal-dark">
               {{ e.latest_bp ? e.latest_bp.systolic + "/" + e.latest_bp.diastolic : "—" }}
             </p>
-            <p class="text-xs font-bold text-ink/60">Latest BP</p>
+            <p class="text-xs font-bold text-ink/60">{{ t("family.latestBP") }}</p>
           </div>
         </div>
 
         <div v-if="e.last_post" class="mt-4 rounded-2xl bg-cream p-4">
-          <p class="text-xs font-bold text-ink/50">Latest update from {{ e.name.split(" ")[0] }}</p>
+          <p class="text-xs font-bold text-ink/50">{{ t("family.latestUpdate", { name: e.name.split(" ")[0] }) }}</p>
           <p class="mt-1">{{ e.last_post }}</p>
         </div>
       </div>
@@ -279,14 +299,14 @@ const completeChallenge = async () => {
     <!-- DOCTOR -->
     <template v-else-if="patients.length">
       <div class="rounded-3xl bg-gradient-to-br from-indigo-500 to-teal-dark p-6 text-white shadow-soft">
-        <p class="text-lg font-semibold">Welcome, {{ firstName }}</p>
-        <h2 class="mt-1 text-3xl font-extrabold">Your patients</h2>
+        <p class="text-lg font-semibold">{{ t("doctor.welcome", { name: firstName }) }}</p>
+        <h2 class="mt-1 text-3xl font-extrabold">{{ t("doctor.yourPatients") }}</h2>
       </div>
       <div v-for="p in patients" :key="p.patient_id" class="card">
         <div class="flex items-center justify-between">
           <div>
             <h3 class="text-2xl font-extrabold">{{ p.name }}</h3>
-            <p class="text-sm text-ink/60">{{ p.age }} yrs · {{ p.city }}</p>
+            <p class="text-sm text-ink/60">{{ t("doctor.years", { n: p.age }) }} · {{ p.city }}</p>
           </div>
           <span class="rounded-2xl bg-teal-light px-4 py-2 text-lg font-extrabold text-teal-dark">
             {{ p.latest_bp ? p.latest_bp.systolic + "/" + p.latest_bp.diastolic : "—" }}
@@ -296,7 +316,7 @@ const completeChallenge = async () => {
           <div class="h-3 flex-1 overflow-hidden rounded-full bg-ink/10">
             <div class="h-full rounded-full bg-teal" :style="{ width: (p.adherence_rate ?? 0) + '%' }"></div>
           </div>
-          <span class="font-bold text-ink/60">{{ p.adherence_rate ?? "—" }}% adherence</span>
+          <span class="font-bold text-ink/60">{{ p.adherence_rate ?? "—" }}% {{ t("doc.adherenceLabel") }}</span>
         </div>
       </div>
     </template>

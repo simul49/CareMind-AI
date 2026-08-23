@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { onMounted, ref, computed } from "vue";
 import { api, fmtTime } from "@/services/api";
+import { useI18n } from "@/i18n";
 
+const { t } = useI18n();
 const doses = ref<any[]>([]);
 const medicines = ref<any[]>([]);
 const loading = ref(true);
@@ -44,22 +46,22 @@ const addMedicine = async () => {
   <div class="space-y-5">
     <section>
       <div class="flex items-center justify-between">
-        <h3 class="text-xl font-extrabold">Today's doses</h3>
-        <button class="btn-ghost px-4 py-2" @click="showAdd = !showAdd">+ Add</button>
+        <h3 class="text-xl font-extrabold">{{ t("meds.todayDoses") }}</h3>
+        <button class="btn-ghost px-4 py-2" @click="showAdd = !showAdd">+ {{ t("meds.add") }}</button>
       </div>
 
       <div v-if="showAdd" class="card mt-3 space-y-3 bg-teal-light/50">
-        <input v-model="newMed.name" class="input" placeholder="Medicine name" />
+        <input v-model="newMed.name" class="input" :placeholder="t('meds.namePh')" />
         <div class="grid grid-cols-2 gap-3">
-          <input v-model="newMed.dosage" class="input" placeholder="Dosage (e.g. 5)" />
+          <input v-model="newMed.dosage" class="input" :placeholder="t('meds.dosePh')" />
           <input v-model="newMed.scheduled_time" class="input" type="time" />
         </div>
-        <input v-model="newMed.frequency" class="input" placeholder="Frequency (e.g. Once daily)" />
-        <button class="btn-primary w-full" @click="addMedicine">Save medicine</button>
+        <input v-model="newMed.frequency" class="input" :placeholder="t('meds.freqPh')" />
+        <button class="btn-primary w-full" @click="addMedicine">{{ t("meds.save") }}</button>
       </div>
 
-      <div v-if="loading" class="py-10 text-center text-ink/50">Loading…</div>
-      <div v-else-if="doses.length === 0" class="card text-center text-ink/60">No doses scheduled today.</div>
+      <div v-if="loading" class="py-10 text-center text-ink/50">{{ t("common.loading") }}</div>
+      <div v-else-if="doses.length === 0" class="card text-center text-ink/60">{{ t("meds.noDoses") }}</div>
 
       <div v-for="d in doses" :key="d.log_id" class="card mt-3"
            :class="d.status === 'pending' ? 'border-l-8 border-teal' : 'opacity-70'">
@@ -75,14 +77,14 @@ const addMedicine = async () => {
           </span>
         </div>
         <div v-if="d.status === 'pending'" class="mt-3 flex gap-3">
-          <button class="btn-primary flex-1" @click="act(d.log_id, 'take')">✓ I took it</button>
-          <button class="btn-ghost" @click="act(d.log_id, 'skip')">Skip</button>
+          <button class="btn-primary flex-1" @click="act(d.log_id, 'take')">✓ {{ t("meds.tookIt") }}</button>
+          <button class="btn-ghost" @click="act(d.log_id, 'skip')">{{ t("meds.skip") }}</button>
         </div>
       </div>
     </section>
 
     <section>
-      <h3 class="text-xl font-extrabold">My medicines</h3>
+      <h3 class="text-xl font-extrabold">{{ t("meds.myMeds") }}</h3>
       <div v-for="m in medicines" :key="m.id" class="card mt-3">
         <p class="text-lg font-extrabold">{{ m.name }}</p>
         <p class="text-sm text-ink/60">{{ m.dosage ? m.dosage + " " + m.dosage_unit : "" }}

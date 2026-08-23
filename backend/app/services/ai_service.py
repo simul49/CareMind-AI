@@ -183,10 +183,45 @@ _DEMO_REPLIES = [
     "fairly stable. Remember to take your medicine as Dr. Rahman prescribed. Want me to remind you?",
 ]
 
+_DEMO_REPLIES_ZH = [
+    "{name}，我一直在陪着你。根据你分享的情况，我的理解是这样的……建议我们先观察几天，"
+    "下次见 Rahman 医生时和他提一下。需要我帮你记下来给医生看吗？",
+    "{name}，这是个很好的问题。根据最近的记录，我看到有几个地方值得留意。"
+    "任何改变之前，我都建议先和你的医生确认。",
+    "我听到了，{name}。我们慢慢来：好好休息、多喝水，如果感觉更难受了，"
+    "我们一起给你的医生打电话。我也可以把你的感受告诉家人。",
+    "谢谢你告诉我，{name}。最近两周你的血压读数比较平稳。记得按 Rahman 医生的吩咐按时吃药。需要我提醒你吗？",
+]
 
-def _demo_chat(user: User, latest: str) -> str:
+
+def _demo_chat(user: User, latest: str, lang: str = "en") -> str:
     first = user.full_name.split()[0]
     text = latest.lower()
+    if lang == "zh":
+        if any(w in text for w in ["胸", "呼吸", "晕", "摔倒", "中风", "昏倒", "喘不过气"]):
+            return (
+                f"{first}，听起来情况比较严重。请立刻拨打急救电话（120），"
+                "或者按下 App 里的 SOS 按钮。我会马上通知你的家人。我一直在这里陪着你。"
+            )
+        if any(w in text for w in ["药", "吃药", "用药", "剂量", "服药"]):
+            return (
+                f"关于你的药，{first}：一定要严格按 Rahman 医生的嘱咐服用。"
+                "你今晚 8 点还有一次（氨氯地平）。需要我帮你设个提醒吗？"
+                "千万不要在没问医生的情况下停药或改药。"
+            )
+        if any(w in text for w in ["血压", "高压", "低压", "偏高"]):
+            return (
+                f"我看了你的血压记录，{first}。过去两周略有上升（从大约 132/84 到 145/90）。"
+                "一次读数不能说明问题，但建议你下次见 Rahman 医生时提一下。"
+                "我也可以把它加到健康时间线里，方便复诊时查看。"
+            )
+        if any(w in text for w in ["睡", "失眠", "困", "入睡"]):
+            return (
+                f"睡眠太重要了，{first}。昨晚你记录了大约 7 小时 — 这是不错的信号。"
+                "睡前放松一下（喝杯温水，提前一小时放下手机）通常会有帮助。"
+                "如果失眠超过一周，我们一起告诉医生。"
+            )
+        return _strip_emoji(random.choice(_DEMO_REPLIES_ZH).format(name=first))
     if any(w in text for w in ["chest", "breath", "faint", "fall", "stroke", "breathe"]):
         return (
             f"{first}, that sounds serious. Please call emergency services right now "
@@ -215,7 +250,15 @@ def _demo_chat(user: User, latest: str) -> str:
     return _strip_emoji(random.choice(_DEMO_REPLIES).format(name=first))
 
 
-def chat_with_user(user: User, conversation_id: int | None, message: str) -> tuple[int, str, list[str]]:
+_LANG_HINT = {
+    "zh": "语言要求：请始终用简体中文回复，语气温暖亲切，句子简短，像对家人说话一样。",
+    "en": "Language: always reply in English with warm, simple, short sentences.",
+}
+
+
+def chat_with_user(
+    user: User, conversation_id: int | None, message: str, lang: str = "en"
+) -> tuple[int, str, list[str]]:
     db = SessionLocal()
     try:
         conv = None
@@ -241,7 +284,8 @@ def chat_with_user(user: User, conversation_id: int | None, message: str) -> tup
         db.commit()
 
         context = _build_context(db, user.id)
-        system = SAFETY_RULES + "\n\nKnown user health context (do not repeat verbatim):\n" + context
+        lang_hint = _LANG_HINT.get(lang, _LANG_HINT["en"])
+        system = SAFETY_RULES + "\n\n" + lang_hint + "\n\nKnown user health context (do not repeat verbatim):\n" + context
 
         msgs = [{"role": "system", "content": system}]
         for h in history:
@@ -250,7 +294,7 @@ def chat_with_user(user: User, conversation_id: int | None, message: str) -> tup
 
         reply = _live_chat(msgs)
         if not reply:
-            reply = _demo_chat(user, message)
+            reply = _demo_chat(user, message, lang)
 
         db.add(AiMessage(conversation_id=conv.id, sender="assistant", content=reply))
         db.commit()

@@ -2,8 +2,10 @@
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { api } from "@/services/api";
+import { useI18n } from "@/i18n";
 
 const router = useRouter();
+const { t } = useI18n();
 const patients = ref<any[]>([]);
 const loading = ref(true);
 const error = ref("");
@@ -27,22 +29,22 @@ onMounted(async () => {
 <template>
   <div class="space-y-5">
     <div>
-      <h2 class="text-2xl font-extrabold">Your patients</h2>
-      <p class="text-sm text-ink/60">Daily summaries from CareMind monitoring.</p>
+      <h2 class="text-2xl font-extrabold">{{ t("doc.title") }}</h2>
+      <p class="text-sm text-ink/60">{{ t("doc.sub") }}</p>
     </div>
 
     <p v-if="error" class="rounded-2xl bg-rose/10 px-4 py-3 font-semibold text-rose">{{ error }}</p>
-    <div v-if="loading" class="py-16 text-center text-ink/50">Loading…</div>
+    <div v-if="loading" class="py-16 text-center text-ink/50">{{ t("common.loading") }}</div>
 
     <!-- Stats -->
     <div v-if="patients.length" class="grid grid-cols-2 gap-3">
       <div class="card">
         <p class="text-3xl font-extrabold text-teal-dark">{{ patients.length }}</p>
-        <p class="text-xs font-bold text-ink/50">Patients</p>
+        <p class="text-xs font-bold text-ink/50">{{ t("doc.patients") }}</p>
       </div>
       <div class="card">
         <p class="text-3xl font-extrabold text-teal-dark">{{ avg() ?? "—" }}%</p>
-        <p class="text-xs font-bold text-ink/50">Avg. medicine adherence</p>
+        <p class="text-xs font-bold text-ink/50">{{ t("doc.adherence") }}</p>
       </div>
     </div>
 
@@ -58,11 +60,11 @@ onMounted(async () => {
       </span>
       <div class="min-w-0 flex-1">
         <p class="truncate font-extrabold text-lg">{{ p.name }}</p>
-        <p class="text-sm text-ink/60">{{ p.age ?? "—" }} years · {{ p.city || "—" }}</p>
+        <p class="text-sm text-ink/60">{{ p.age ?? "—" }} {{ t("doc.years") }} · {{ p.city || "—" }}</p>
         <p v-if="p.latest_bp" class="mt-1 text-sm font-extrabold text-teal-dark">
-          BP {{ p.latest_bp.systolic }}/{{ p.latest_bp.diastolic }}
+          {{ t("doc.bp") }} {{ p.latest_bp.systolic }}/{{ p.latest_bp.diastolic }}
         </p>
-        <p v-else class="mt-1 text-sm text-ink/40">No BP readings yet</p>
+        <p v-else class="mt-1 text-sm text-ink/40">{{ t("doc.noBp") }}</p>
       </div>
       <div class="text-right">
         <div class="relative mx-auto h-14 w-14">
@@ -77,13 +79,13 @@ onMounted(async () => {
           </svg>
           <span class="absolute inset-0 grid place-items-center text-xs font-extrabold">{{ p.adherence_rate ?? "—" }}%</span>
         </div>
-        <p class="mt-1 text-[0.65rem] font-bold text-ink/40">adherence</p>
+        <p class="mt-1 text-[0.65rem] font-bold text-ink/40">{{ t("doc.adherenceLabel") }}</p>
       </div>
     </button>
 
     <div v-if="!loading && !patients.length" class="card py-10 text-center">
-      <p class="mt-2 font-extrabold">No patients assigned yet</p>
-      <p class="text-sm text-ink/60">Patient summaries will appear here once linked.</p>
+      <p class="mt-2 font-extrabold">{{ t("doc.empty") }}</p>
+      <p class="text-sm text-ink/60">{{ t("doc.emptySub") }}</p>
     </div>
   </div>
 </template>

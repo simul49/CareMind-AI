@@ -1,3 +1,5 @@
+import { fmtDay as _fmtDay, fmtTime as _fmtTime } from "@/i18n";
+
 const BASE = "/api";
 
 export async function api<T = any>(
@@ -39,14 +41,6 @@ export async function api<T = any>(
   return data as T;
 }
 
-export const fmtTime = (iso?: string | null) => {
-  if (!iso) return "";
-  const d = new Date(iso);
-  return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-};
+export const fmtTime = (iso?: string | null) => _fmtTime(iso);
 
-export const fmtDay = (iso?: string | null) => {
-  if (!iso) return "";
-  const d = new Date(iso);
-  return d.toLocaleDateString([], { month: "short", day: "numeric" });
-};
+export const fmtDay = (iso?: string | null) => _fmtDay(iso);
