@@ -1,0 +1,22 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: caremind-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: caremind_root
+      MYSQL_DATABASE: caremind_ai
+      MYSQL_USER: caremind
+      MYSQL_PASSWORD: caremind_dev
+    ports:
+      - "3306:3306"
+    volumes:
+      - caremind_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-pcaremind_root"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  caremind_mysql_data:

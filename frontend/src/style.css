@@ -1,0 +1,98 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: "Nunito", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  @apply bg-cream text-ink antialiased;
+  margin: 0;
+  min-height: 100vh;
+}
+
+button {
+  @apply cursor-pointer select-none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Elder-friendly focus */
+:focus-visible {
+  outline: 3px solid rgba(14, 124, 123, 0.55);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* Soft scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(14, 124, 123, 0.35);
+  border-radius: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+@layer components {
+  .card {
+    @apply rounded-3xl bg-white p-5 shadow-card;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl font-bold transition active:scale-[0.98];
+  }
+  .btn-primary {
+    @apply btn bg-teal text-white px-6 py-3.5 text-lg shadow-soft hover:bg-teal-dark;
+  }
+  .btn-ghost {
+    @apply btn bg-teal-light text-teal-dark px-5 py-3 text-base hover:bg-teal/15;
+  }
+  .btn-danger {
+    @apply btn bg-rose text-white px-6 py-3.5 text-lg shadow-soft hover:brightness-110;
+  }
+  .label {
+    @apply text-sm font-bold text-ink/60 uppercase tracking-wide;
+  }
+  .input {
+    @apply w-full rounded-2xl border-2 border-ink/10 bg-white px-4 py-3.5 text-lg focus:border-teal outline-none;
+  }
+  .pulse-sos {
+    animation: sosPulse 1.6s infinite;
+  }
+}
+
+@keyframes sosPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 18px rgba(225, 29, 72, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(225, 29, 72, 0);
+  }
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.pop-enter-active {
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+.pop-enter-from {
+  transform: translateY(12px) scale(0.98);
+  opacity: 0;
+}
