@@ -42,13 +42,13 @@ const resolve = async () => {
   <div class="space-y-5">
     <!-- ACTIVE SOS -->
     <div v-if="active" class="card bg-gradient-to-br from-rose to-rose/80 text-center text-white">
-      <p class="text-6xl">🚨</p>
-      <h3 class="mt-2 text-3xl font-extrabold">Help is on the way</h3>
+      <span class="mx-auto inline-block rounded-2xl bg-white/15 px-5 py-2 text-xl font-extrabold tracking-widest">SOS ACTIVE</span>
+      <h3 class="mt-3 text-3xl font-extrabold">Help is on the way</h3>
       <p class="mt-1 text-white/85">Your emergency alert is active.</p>
       <div class="mx-auto mt-5 max-w-xs space-y-2 rounded-2xl bg-white/15 p-4 text-left">
-        <p>📍 {{ active.location_label || "Home" }}</p>
-        <p>🏥 City General Hospital — 5 min away</p>
-        <p>📞 {{ contacts.length }} contact(s) notified</p>
+        <p>Location: {{ active.location_label || "Home" }}</p>
+        <p>Hospital: City General Hospital — 5 min away</p>
+        <p>Notified: {{ contacts.length }} contact(s)</p>
       </div>
       <button class="btn mt-6 w-full bg-white text-rose py-4 text-xl font-extrabold" @click="resolve">
         ✓ I'm okay now — stop alert
@@ -57,11 +57,11 @@ const resolve = async () => {
 
     <!-- TRIGGER SCREEN -->
     <div v-else-if="triggered" class="card text-center">
-      <p class="text-6xl">🛟</p>
-      <h3 class="mt-2 text-2xl font-extrabold text-teal-dark">Emergency alert sent</h3>
+      <span class="mx-auto inline-block rounded-2xl bg-teal px-5 py-2 text-lg font-extrabold tracking-widest text-white">SOS SENT</span>
+      <h3 class="mt-3 text-2xl font-extrabold text-teal-dark">Emergency alert sent</h3>
       <div class="mx-auto mt-4 max-w-sm space-y-2 rounded-2xl bg-teal-light/50 p-4 text-left">
-        <p>🏥 {{ triggered.hospital.name }} — {{ triggered.hospital.distance_km }} km away</p>
-        <p v-for="c in triggered.contacts_notified" :key="c.phone">📱 SMS sent to {{ c.name }} ({{ c.phone }})</p>
+        <p>Hospital: {{ triggered.hospital.name }} — {{ triggered.hospital.distance_km }} km away</p>
+        <p v-for="c in triggered.contacts_notified" :key="c.phone">SMS sent to {{ c.name }} ({{ c.phone }})</p>
       </div>
       <button class="btn-ghost mt-4" @click="triggered = null">Back</button>
     </div>
@@ -71,9 +71,8 @@ const resolve = async () => {
       <button class="pulse-sos mx-auto grid h-56 w-56 place-items-center rounded-full bg-rose text-white shadow-soft transition active:scale-95"
               @click="triggerSos">
         <div>
-          <p class="text-7xl">🛟</p>
-          <p class="mt-2 text-3xl font-extrabold tracking-wide">SOS</p>
-          <p class="text-sm font-semibold text-white/85">Tap for help</p>
+          <p class="text-5xl font-extrabold tracking-wide">SOS</p>
+          <p class="mt-1 text-sm font-semibold text-white/85">Tap for help</p>
         </div>
       </button>
       <p class="mx-auto mt-5 max-w-xs text-ink/60">
@@ -85,8 +84,8 @@ const resolve = async () => {
     <section>
       <h3 class="text-xl font-extrabold">Emergency contacts</h3>
       <div v-for="c in contacts" :key="c.id" class="card mt-3 flex items-center gap-4">
-        <div class="grid h-12 w-12 place-items-center rounded-full text-2xl"
-             :class="c.is_primary ? 'bg-rose/10' : 'bg-teal-light'">{{ c.is_primary ? "⭐" : "📱" }}</div>
+        <div class="grid h-12 w-12 place-items-center rounded-full text-xs font-extrabold"
+             :class="c.is_primary ? 'bg-rose/10 text-rose' : 'bg-teal-light text-teal-dark'">{{ c.is_primary ? "Main" : "Call" }}</div>
         <div class="flex-1">
           <p class="font-extrabold">{{ c.name }} <span v-if="c.is_primary" class="text-xs text-rose">primary</span></p>
           <p class="text-sm text-ink/60">{{ c.relationship_type }} · {{ c.phone }}</p>
@@ -98,7 +97,9 @@ const resolve = async () => {
     <section v-if="events.length">
       <h3 class="text-xl font-extrabold">Past alerts</h3>
       <div v-for="e in events" :key="e.id" class="card mt-3">
-        <p class="font-extrabold">{{ e.status === "resolved" ? "✅ Resolved" : "🚨 " + e.status }}</p>
+        <p class="font-extrabold" :class="e.status === 'resolved' ? 'text-teal' : 'text-rose'">
+          {{ e.status === "resolved" ? "Resolved" : e.status.toUpperCase() }}
+        </p>
         <p class="text-sm text-ink/60">{{ new Date(e.started_at).toLocaleString() }}</p>
       </div>
     </section>

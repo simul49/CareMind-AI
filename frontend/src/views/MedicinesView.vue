@@ -59,12 +59,12 @@ const addMedicine = async () => {
       </div>
 
       <div v-if="loading" class="py-10 text-center text-ink/50">Loading…</div>
-      <div v-else-if="doses.length === 0" class="card text-center text-ink/60">No doses scheduled today 🎉</div>
+      <div v-else-if="doses.length === 0" class="card text-center text-ink/60">No doses scheduled today.</div>
 
       <div v-for="d in doses" :key="d.log_id" class="card mt-3"
            :class="d.status === 'pending' ? 'border-l-8 border-teal' : 'opacity-70'">
         <div class="flex items-center gap-4">
-          <span class="text-4xl">💊</span>
+          <span class="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-teal-light text-sm font-extrabold text-teal-dark">MED</span>
           <div class="flex-1">
             <p class="text-2xl font-extrabold">{{ d.medicine_name }}</p>
             <p class="text-ink/60">{{ d.scheduled_time }} · {{ d.dosage ? d.dosage + " " + d.dosage_unit : "" }}

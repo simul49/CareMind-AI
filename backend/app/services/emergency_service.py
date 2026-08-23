@@ -64,7 +64,7 @@ def trigger_sos(db: Session, elder: User, trigger_type: str, location_label: str
         db.add(Message(
             conversation_id=family_conv.id,
             sender_id=elder.id,
-            content=f"🚨 SOS ALERT: {elder.full_name} pressed the emergency button at "
+            content=f"SOS ALERT: {elder.full_name} pressed the emergency button at "
                     f"{datetime.utcnow().strftime('%H:%M')}. Location: {event.location_label}. "
                     f"Nearest hospital: {hospital['name']}. Please call immediately.",
             message_type="system",

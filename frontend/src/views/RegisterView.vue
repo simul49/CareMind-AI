@@ -50,16 +50,16 @@ const submit = async () => {
             <div class="mt-2 grid grid-cols-2 gap-2">
               <button type="button" class="rounded-2xl border-2 px-3 py-3 text-lg font-bold transition"
                       :class="form.role === 'elder' ? 'border-teal bg-teal-light text-teal-dark' : 'border-ink/10'"
-                      @click="form.role = 'elder'">👵 Older adult</button>
+                      @click="form.role = 'elder'">Older adult</button>
               <button type="button" class="rounded-2xl border-2 px-3 py-3 text-lg font-bold transition"
                       :class="form.role === 'family' ? 'border-teal bg-teal-light text-teal-dark' : 'border-ink/10'"
-                      @click="form.role = 'family'">👨‍👩‍👧 Family</button>
+                      @click="form.role = 'family'">Family</button>
               <button type="button" class="rounded-2xl border-2 px-3 py-3 text-lg font-bold transition"
                       :class="form.role === 'doctor' ? 'border-teal bg-teal-light text-teal-dark' : 'border-ink/10'"
-                      @click="form.role = 'doctor'">🧑‍⚕️ Doctor</button>
+                      @click="form.role = 'doctor'">Doctor</button>
               <button type="button" class="rounded-2xl border-2 px-3 py-3 text-lg font-bold transition"
                       :class="form.role === 'caregiver' ? 'border-teal bg-teal-light text-teal-dark' : 'border-ink/10'"
-                      @click="form.role = 'caregiver'">🤝 Caregiver</button>
+                      @click="form.role = 'caregiver'">Caregiver</button>
             </div>
           </div>
 

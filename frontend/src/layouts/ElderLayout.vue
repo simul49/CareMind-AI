@@ -30,25 +30,25 @@ onUnmounted(() => {
   if (badgeTimer) clearInterval(badgeTimer);
 });
 
-const roleTabs: Record<string, { name: string; label: string; emoji: string }[]> = {
+const roleTabs: Record<string, { name: string; label: string }[]> = {
   elder: [
-    { name: "home", label: "Home", emoji: "🏠" },
-    { name: "health", label: "Health", emoji: "❤️" },
-    { name: "ai", label: "CareMind", emoji: "🤖" },
-    { name: "moments", label: "Moments", emoji: "👨‍👩‍👧" },
-    { name: "profile", label: "Me", emoji: "👤" },
+    { name: "home", label: "Home" },
+    { name: "health", label: "Health" },
+    { name: "ai", label: "CareMind" },
+    { name: "moments", label: "Moments" },
+    { name: "profile", label: "Me" },
   ],
   family: [
-    { name: "home", label: "Home", emoji: "🏠" },
-    { name: "chat", label: "Chat", emoji: "💬" },
-    { name: "moments", label: "Moments", emoji: "👨‍👩‍👧" },
-    { name: "profile", label: "Me", emoji: "👤" },
+    { name: "home", label: "Home" },
+    { name: "chat", label: "Chat" },
+    { name: "moments", label: "Moments" },
+    { name: "profile", label: "Me" },
   ],
   caregiver: [
-    { name: "home", label: "Home", emoji: "🏠" },
-    { name: "chat", label: "Chat", emoji: "💬" },
-    { name: "moments", label: "Moments", emoji: "👨‍👩‍👧" },
-    { name: "profile", label: "Me", emoji: "👤" },
+    { name: "home", label: "Home" },
+    { name: "chat", label: "Chat" },
+    { name: "moments", label: "Moments" },
+    { name: "profile", label: "Me" },
   ],
 };
 
@@ -76,8 +76,12 @@ const initials = computed(() =>
           <p class="text-lg font-extrabold leading-tight">{{ auth.user?.full_name }}</p>
         </div>
       </div>
-      <RouterLink to="/notifications" class="relative rounded-2xl bg-white px-4 py-2 text-lg shadow-card" title="Notifications">
-        🔔
+      <RouterLink
+        to="/notifications"
+        class="relative rounded-2xl bg-white px-4 py-2.5 text-sm font-extrabold text-ink shadow-card"
+        title="Alerts"
+      >
+        Alerts
         <span
           v-if="badgeCount > 0"
           class="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-rose px-1 text-[0.65rem] font-extrabold text-white"
@@ -97,11 +101,11 @@ const initials = computed(() =>
     <!-- SOS floating button (elder only) -->
     <button
       v-if="isElder"
-      class="pulse-sos fixed bottom-24 right-5 z-30 grid h-16 w-16 place-items-center rounded-full bg-rose text-3xl text-white shadow-soft"
+      class="pulse-sos fixed bottom-24 right-5 z-30 grid h-16 w-16 place-items-center rounded-full bg-rose text-lg font-extrabold tracking-wide text-white shadow-soft"
       title="SOS — Emergency"
       @click="router.push('/app/emergency')"
     >
-      🛟
+      SOS
     </button>
 
     <!-- Bottom nav -->
@@ -113,12 +117,15 @@ const initials = computed(() =>
         <button
           v-for="t in tabs"
           :key="t.name"
-          class="flex flex-1 flex-col items-center gap-0.5 py-3 transition"
-          :class="activeTab === t.name ? 'text-teal-dark' : 'text-ink/45'"
+          class="mx-1 flex-1 rounded-2xl px-1 py-2.5 text-sm font-extrabold transition"
+          :class="
+            activeTab === t.name
+              ? 'bg-teal text-white shadow-soft'
+              : 'text-ink/50 hover:bg-teal/10'
+          "
           @click="router.push('/app/' + t.name)"
         >
-          <span class="text-2xl" :class="{ 'scale-110': activeTab === t.name }">{{ t.emoji }}</span>
-          <span class="text-xs font-bold">{{ t.label }}</span>
+          {{ t.label }}
         </button>
       </div>
     </nav>

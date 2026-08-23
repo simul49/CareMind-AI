@@ -82,17 +82,17 @@ const completeChallenge = async () => {
     <!-- ELDER HOME -->
     <template v-else-if="isElder">
       <div class="rounded-3xl bg-gradient-to-br from-teal to-teal-dark p-6 text-white shadow-soft">
-        <p class="text-lg font-semibold text-teal-light">{{ greeting }}, {{ firstName }} 👋</p>
+        <p class="text-lg font-semibold text-teal-light">{{ greeting }}, {{ firstName }}</p>
         <h2 class="mt-1 text-3xl font-extrabold">How are you feeling today?</h2>
-        <div class="mt-4 flex gap-3">
-          <button v-for="(e, i) in ['😊', '🙂', '😐', '😔', '😟']" :key="i"
-                  class="grid h-14 w-14 place-items-center rounded-2xl bg-white/15 text-3xl transition hover:bg-white/30"
+        <div class="mt-4 grid grid-cols-5 gap-2">
+          <button v-for="(label, i) in ['Great', 'Good', 'Okay', 'Low', 'Poor']" :key="i"
+                  class="rounded-2xl bg-white/15 px-2 py-3 text-sm font-extrabold transition hover:bg-white/30"
                   :class="{ 'ring-4 ring-white/70': mood === i + 1 }"
                   @click="logMood(i + 1)">
-            {{ e }}
+            {{ label }}
           </button>
         </div>
-        <p v-if="mood" class="mt-3 text-sm font-semibold text-teal-light">Thanks — I've noted that for your care circle. 💙</p>
+        <p v-if="mood" class="mt-3 text-sm font-semibold text-teal-light">Thanks — I've noted that for your care circle.</p>
       </div>
 
       <!-- Today's Care -->
@@ -103,7 +103,7 @@ const completeChallenge = async () => {
         </div>
         <div v-if="nextDose" class="card mt-3 border-l-8 border-teal">
           <div class="flex items-start gap-4">
-            <div class="text-5xl">💊</div>
+            <div class="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-teal-light text-sm font-extrabold text-teal-dark">MED</div>
             <div class="flex-1">
               <p class="text-sm font-bold text-ink/50">
                 {{ nextDose.status === "pending" ? "Next dose" : "Latest dose" }} · {{ nextDose.scheduled_time }}
@@ -133,8 +133,8 @@ const completeChallenge = async () => {
         </div>
         <div class="card mt-3 bg-gradient-to-br from-teal-light/60 to-white">
           <div class="flex items-center gap-4">
-            <span class="grid h-16 w-16 shrink-0 place-items-center rounded-3xl bg-white text-4xl shadow-card">
-              {{ challenge.icon }}
+            <span class="grid h-16 w-16 shrink-0 place-items-center rounded-3xl bg-white text-lg font-extrabold text-teal-dark shadow-card">
+              {{ challenge.badge }}
             </span>
             <div class="flex-1">
               <p class="text-[0.7rem] font-extrabold uppercase tracking-wide text-teal-dark">{{ challenge.category }}</p>
@@ -152,7 +152,7 @@ const completeChallenge = async () => {
               {{ challengeBusy ? "Completing…" : "✓ I did it!" }}
             </button>
             <div v-else class="rounded-2xl bg-teal px-4 py-3 text-center font-extrabold text-white">
-              ✅ Done today — beautiful!
+              Done today — beautiful!
             </div>
           </div>
         </div>
@@ -163,12 +163,12 @@ const completeChallenge = async () => {
         <h3 class="text-xl font-extrabold">Family & reports</h3>
         <div class="mt-3 grid grid-cols-2 gap-3">
           <button class="card flex flex-col items-center gap-1.5 py-4 transition hover:-translate-y-0.5 hover:shadow-card" @click="router.push('/app/chat')">
-            <span class="text-3xl">💬</span>
+            <span class="grid h-12 w-12 place-items-center rounded-2xl bg-teal-light text-xs font-extrabold text-teal-dark">Chat</span>
             <span class="font-extrabold">Family chat</span>
             <span class="text-xs text-ink/50">Stay close</span>
           </button>
           <button class="card flex flex-col items-center gap-1.5 py-4 transition hover:-translate-y-0.5 hover:shadow-card" @click="router.push('/app/reports')">
-            <span class="text-3xl">📄</span>
+            <span class="grid h-12 w-12 place-items-center rounded-2xl bg-teal-light text-xs font-extrabold text-teal-dark">Docs</span>
             <span class="font-extrabold">My reports</span>
             <span class="text-xs text-ink/50">AI explains them</span>
           </button>
@@ -212,7 +212,9 @@ const completeChallenge = async () => {
         <h3 class="text-xl font-extrabold">From CareMind AI</h3>
         <div class="card mt-3 bg-gradient-to-br from-amber-light to-white">
           <div class="flex gap-3">
-            <span class="text-3xl">{{ insights[0].severity === "warning" ? "🔎" : "💡" }}</span>
+            <span class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-amber-light text-lg font-extrabold text-amber">
+              {{ insights[0].severity === "warning" ? "!" : "AI" }}
+            </span>
             <div>
               <p class="font-extrabold">{{ insights[0].title }}</p>
               <p class="mt-1 text-ink/70">{{ insights[0].content }}</p>
@@ -224,7 +226,7 @@ const completeChallenge = async () => {
 
       <section class="card bg-rose/5">
         <div class="flex items-center gap-4">
-          <span class="text-4xl">🛟</span>
+          <span class="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-rose/10 text-sm font-extrabold text-rose">SOS</span>
           <div class="flex-1">
             <p class="font-extrabold text-lg">Need help right now?</p>
             <p class="text-sm text-ink/60">One tap alerts your family and finds the nearest hospital.</p>
@@ -247,7 +249,7 @@ const completeChallenge = async () => {
             <h3 class="text-2xl font-extrabold">{{ e.name }} <span class="text-lg text-ink/50">({{ e.age }})</span></h3>
             <p class="text-sm text-ink/60">{{ e.city }}</p>
           </div>
-          <div v-if="e.has_active_emergency" class="rounded-2xl bg-rose px-4 py-2 font-extrabold text-white">🚨 SOS ACTIVE</div>
+          <div v-if="e.has_active_emergency" class="rounded-2xl bg-rose px-4 py-2 font-extrabold text-white">SOS ACTIVE</div>
         </div>
 
         <div class="mt-4 grid grid-cols-3 gap-3 text-center">

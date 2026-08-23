@@ -51,7 +51,7 @@ def notifications(user: User = Depends(get_current_user), db: Session = Depends(
         .all()
     )
     for i in insights:
-        icon = "🚨" if i.severity == "critical" else ("🔎" if i.severity == "warning" else "💡")
+        icon = "SOS" if i.severity == "critical" else ("!" if i.severity == "warning" else "AI")
         items.append({
             "id": f"insight-{i.id}",
             "type": "insight",
@@ -82,7 +82,7 @@ def notifications(user: User = Depends(get_current_user), db: Session = Depends(
         items.append({
             "id": f"dose-{d.id}",
             "type": "medicine",
-            "icon": "💊",
+            "icon": "MED",
             "title": f"Medicine due · {d.medicine.name if d.medicine else 'Medication'}",
             "content": f"Scheduled for {d.scheduled_for.strftime('%I:%M %p')} — tap to confirm taking it.",
             "time": d.scheduled_for.isoformat(),
@@ -119,7 +119,7 @@ def notifications(user: User = Depends(get_current_user), db: Session = Depends(
             items.append({
                 "id": f"emergency-{e.id}",
                 "type": "emergency",
-                "icon": "🚨",
+                "icon": "SOS",
                 "title": f"Emergency · {elder.full_name if elder else 'Care circle member'}",
                 "content": f"{trigger} pressed at {e.created_at.strftime('%I:%M %p')} — take action now.",
                 "time": e.created_at.isoformat(),
@@ -141,7 +141,7 @@ def notifications(user: User = Depends(get_current_user), db: Session = Depends(
         items.append({
             "id": f"report-{r.id}",
             "type": "report",
-            "icon": "📄",
+            "icon": "DOC",
             "title": f"Report analyzed · {r.title}",
             "content": snippet + ("…" if len(r.summary or "") > 120 else ""),
             "time": (r.analyzed_at or r.created_at).isoformat(),
@@ -169,7 +169,7 @@ def notifications(user: User = Depends(get_current_user), db: Session = Depends(
             items.append({
                 "id": f"msg-{last.id}",
                 "type": "chat",
-                "icon": "💬",
+                "icon": "MSG",
                 "title": f"Message from {sender.full_name if sender else 'family'}",
                 "content": last.content[:120],
                 "time": last.created_at.isoformat(),

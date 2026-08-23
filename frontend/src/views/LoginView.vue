@@ -30,7 +30,7 @@ const submit = async () => {
     <div class="w-full max-w-md">
       <button class="mb-6 text-teal-dark font-bold" @click="router.push('/')">← Back to home</button>
       <div class="card p-8">
-        <div class="grid h-14 w-14 place-items-center rounded-2xl bg-teal text-3xl text-white shadow-soft">💙</div>
+        <div class="grid h-14 w-14 place-items-center rounded-2xl bg-teal text-sm font-extrabold text-white shadow-soft">CM</div>
         <h1 class="mt-4 text-3xl font-extrabold">Welcome back</h1>
         <p class="mt-1 text-ink/60">Sign in to your care circle.</p>
 

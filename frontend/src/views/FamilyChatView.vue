@@ -15,10 +15,10 @@ const chatsEl = ref<HTMLElement | null>(null);
 let pollTimer: ReturnType<typeof setInterval> | null = null;
 
 const chips = [
-  "💊 Did you take your medicine?",
-  "❤️ How are you feeling today?",
-  "🚶 A short walk helps the heart!",
-  "📞 Call me when you're free",
+  "Did you take your medicine?",
+  "How are you feeling today?",
+  "A short walk helps the heart!",
+  "Call me when you're free",
 ];
 
 onMounted(async () => {
@@ -83,13 +83,13 @@ async function send(text?: string) {
   <div class="flex h-[calc(100vh-180px)] flex-col">
     <div class="mb-2 flex items-center justify-between gap-2">
       <div class="flex min-w-0 items-center gap-3">
-        <span class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-teal text-xl text-white">👨‍👩‍👧</span>
+        <span class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-teal text-xs font-extrabold text-white">Family</span>
         <div class="min-w-0">
           <h2 class="truncate text-xl font-extrabold">{{ activeTitle || "Family chat" }}</h2>
           <p class="text-xs font-bold text-teal">All family members can see this</p>
         </div>
       </div>
-      <button class="rounded-2xl bg-white px-3 py-2 text-lg shadow-card" title="Members">👥</button>
+      <button class="rounded-2xl bg-white px-3 py-2 text-sm font-extrabold shadow-card" title="Members">Members</button>
     </div>
 
     <p v-if="error" class="mb-2 rounded-2xl bg-rose/10 px-4 py-2 text-sm font-semibold text-rose">{{ error }}</p>
@@ -97,8 +97,8 @@ async function send(text?: string) {
     <!-- Thread -->
     <div ref="chatsEl" class="flex-1 space-y-3 overflow-y-auto pr-1">
       <div v-if="!messages.length" class="rounded-3xl bg-teal p-5 text-white shadow-soft">
-        <p class="text-2xl">💬</p>
-        <h3 class="mt-1 text-lg font-extrabold">Say hello to your family</h3>
+        <span class="inline-block rounded-2xl bg-white/15 px-4 py-1.5 text-sm font-extrabold">Family</span>
+        <h3 class="mt-2 text-lg font-extrabold">Say hello to your family</h3>
         <p class="mt-1 text-sm text-teal-light">Share how you're doing — they care about every detail.</p>
       </div>
 

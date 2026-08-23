@@ -7,6 +7,7 @@ Works in two modes:
 
 import json
 import random
+import re
 import shutil
 import subprocess
 
@@ -17,12 +18,42 @@ from app.core.config import settings
 from app.core.database import SessionLocal
 from app.models.models import AiConversation, AiInsight, AiMessage, HealthMetric, Medicine, User
 
+_EMOJI_RE = re.compile(
+    "["
+    "\U0001F000-\U0001FAFF"  # main emoji blocks
+    "\U0001F900-\U0001F9FF"  # supplemental symbols
+    "\U00002600-\U000027BF"  # misc symbols & dingbats
+    "\U0001F1E6-\U0001F1FF"  # flags
+    "\U0000FE0F"             # variation selector
+    "\U0000200D"             # zero-width joiner
+    "\U00002300-\U000023FF"  # misc technical
+    "\U00002B00-\U00002BFF"  # misc symbols/arrows
+    "\U00002E80-\U00002EFF"  # CJK radicals (safety net)
+    "\U0000FE00-\U0000FE0F"  # variation selectors
+    "\U00002700-\U000027BF"  # dingbats
+    "\U00002190-\U000021FF"  # arrows
+    "\U000020B0-\U00002BFF"  # currency-ish misc
+    "]+",
+    flags=re.UNICODE,
+)
+
+
+def _strip_emoji(text: str) -> str:
+    """Remove emoji/pictograms from AI text so replies stay clear for elders."""
+    if not text:
+        return text
+    cleaned = _EMOJI_RE.sub("", text)
+    # Collapse leftover double spaces from removed glyphs
+    cleaned = re.sub(r" {2,}", " ", cleaned)
+    return cleaned.strip()
+
+
 SAFETY_RULES = (
     "You are CareMind Companion, a caring health assistant for older adults. "
     "Rules you MUST follow:\n"
     "1. NEVER diagnose, prescribe, or contradict a doctor. Encourage seeing the doctor when uncertain.\n"
     "2. Respond in plain, warm, simple language — the user may be 70+ years old. Use short sentences. "
-    "Use emojis sparingly to stay friendly.\n"
+    "NEVER use emojis or pictograms — plain text only (write words, not symbols).\n"
     "3. If the user reports chest pain, severe breathing trouble, fainting, or stroke signs, tell them to "
     "call emergency services immediately.\n"
     "4. If the user asks about medication, remind them to follow their doctor's instructions.\n"
@@ -135,7 +166,7 @@ def _live_chat(messages: list[dict]) -> str | None:
     except Exception:
         data = _curl_chat(url, payload)
     try:
-        return data["choices"][0]["message"]["content"].strip()
+        return _strip_emoji(data["choices"][0]["message"]["content"].strip())
     except Exception:
         return None
 
@@ -145,7 +176,7 @@ _DEMO_REPLIES = [
     "I'd gently suggest we keep an eye on it and mention it to Dr. Rahman at your next visit. "
     "Would you like me to note this down for the doctor?",
     "That's a great question, {name}. Based on your recent records, I see a few things worth watching. "
-    "I always recommend confirming with your doctor before changing anything. 💙",
+    "I always recommend confirming with your doctor before changing anything.",
     "I hear you, {name}. Let's keep it simple: rest, stay hydrated, and if anything feels worse, "
     "let's call your doctor together. I can send a summary of how you're feeling to your family.",
     "Thank you for telling me, {name}. Your blood pressure readings over the last two weeks have been "
@@ -160,28 +191,28 @@ def _demo_chat(user: User, latest: str) -> str:
         return (
             f"{first}, that sounds serious. Please call emergency services right now "
             "(911 or your local number), or press the SOS button on the app. I'll alert your family. "
-            "I'm here with you. 💛"
+            "I'm here with you."
         )
     if any(w in text for w in ["medicine", "pill", "medication", "dose"]):
         return (
             f"About your medicine, {first}: always follow Dr. Rahman's instructions exactly. "
             "You have a dose at 8:00 PM tonight (Amlodipine). Should I add a reminder for you? "
-            "Never stop or change a medicine without asking your doctor first. 💊"
+            "Never stop or change a medicine without asking your doctor first."
         )
     if any(w in text for w in ["blood pressure", "bp", "systolic", "high"]):
         return (
             f"I looked at your blood pressure history, {first}. It has been trending slightly upward over "
             "the past two weeks (from about 132/84 to 145/90). One reading is not a diagnosis — but I'd "
             "recommend mentioning this to Dr. Rahman. I can also add it to the health timeline for your "
-            "next visit. 📈"
+            "next visit."
         )
     if any(w in text for w in ["sleep", "tired", "insomnia"]):
         return (
             f"Sleep matters so much, {first}. Last night you logged about 7 hours — that's a good sign. "
             "A gentle wind-down routine (warm drink, no screens an hour before bed) often helps. "
-            "If poor sleep continues for more than a week, let's tell the doctor. 🌙"
+            "If poor sleep continues for more than a week, let's tell the doctor."
         )
-    return random.choice(_DEMO_REPLIES).format(name=first)
+    return _strip_emoji(random.choice(_DEMO_REPLIES).format(name=first))
 
 
 def chat_with_user(user: User, conversation_id: int | None, message: str) -> tuple[int, str, list[str]]:

@@ -47,8 +47,7 @@ async function open(n: any) {
     <div v-if="loading" class="py-16 text-center text-ink/50">Loading…</div>
 
     <div v-else-if="!items.length" class="card py-10 text-center">
-      <p class="text-5xl">🎉</p>
-      <p class="mt-3 font-extrabold text-lg">You're all caught up</p>
+      <p class="font-extrabold text-lg">You're all caught up</p>
       <p class="mt-1 text-ink/60">No notifications right now.</p>
     </div>
 
@@ -58,7 +57,7 @@ async function open(n: any) {
         :class="{ 'border-l-8 border-rose': n.severity === 'critical' }"
         @click="open(n)"
       >
-        <span class="relative grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-teal-light text-2xl">
+        <span class="relative grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-teal-light text-sm font-extrabold text-teal-dark">
           {{ n.icon }}
           <span v-if="n.severity === 'critical'" class="absolute -right-1 -top-1 h-3.5 w-3.5 rounded-full bg-rose animate-pulse"></span>
         </span>

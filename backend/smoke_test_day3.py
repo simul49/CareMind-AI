@@ -18,7 +18,7 @@ with client:
     r = client.get("/challenges/today", headers=h)
     assert r.status_code == 200, r.text
     c = r.json()
-    print(f"Challenge today: {c['icon']} {c['title']} [{c['category']}] done={c['done']} week={c['week_done']}")
+    print(f"Challenge today: {c['badge']} {c['title']} [{c['category']}] done={c['done']} week={c['week_done']}")
 
     r = client.post("/challenges/today/complete", headers=h)
     assert r.status_code == 200 and r.json()["done"], r.text

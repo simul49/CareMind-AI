@@ -79,7 +79,7 @@ async function createPlan() {
     });
     form.value = { title: "", description: "", instructions: "" };
     summary.value = await api(`/doctors/patients/${patientId}/summary`);
-    saved.value = "Care plan sent — Rahima and her family can see it right away. ✅";
+    saved.value = "Care plan sent — Rahima and her family can see it right away.";
   } catch (e: any) {
     error.value = e.message;
   } finally {
@@ -145,7 +145,7 @@ async function createPlan() {
         <h3 class="mb-3 font-extrabold">Prescribed medicines</h3>
         <div v-if="summary.medicines.length" class="space-y-2">
           <div v-for="m in summary.medicines" :key="m.name" class="flex items-center gap-3 rounded-2xl bg-cream px-4 py-3">
-            <span class="text-xl">💊</span>
+            <span class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-teal-light text-xs font-extrabold text-teal-dark">MED</span>
             <div class="flex-1">
               <p class="font-extrabold">{{ m.name }}</p>
               <p class="text-xs text-ink/60">{{ m.dosage }}{{ m.dosage_unit }} · {{ m.frequency }}</p>
@@ -189,7 +189,7 @@ async function createPlan() {
           <input v-model="form.title" class="input" placeholder="Title · e.g. Reduce salt & walk daily" required />
           <textarea v-model="form.description" class="input min-h-[72px]" placeholder="Description (optional)"></textarea>
           <textarea v-model="form.instructions" class="input min-h-[72px]" placeholder="Instructions for Rahima & family (optional)"></textarea>
-          <button class="btn-primary w-full" :disabled="saving">{{ saving ? "Sending…" : "Send care plan 🩺" }}</button>
+          <button class="btn-primary w-full" :disabled="saving">{{ saving ? "Sending…" : "Send care plan" }}</button>
         </form>
       </div>
     </template>

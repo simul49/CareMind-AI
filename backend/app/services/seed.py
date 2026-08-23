@@ -241,17 +241,17 @@ def seed_all() -> None:
         # ---------- Moments feed ----------
         if db.query(Post).filter(Post.author_id == rahma.id).count() == 0:
             post1 = Post(author_id=rahma.id, care_circle_id=circle.id,
-                         content="Beautiful morning walk today! 2.1 km in the park 🌳☀️ "
+                         content="Beautiful morning walk today! 2.1 km in the park. "
                                  "Feeling strong and grateful.",
                          visibility="care_circle")
             db.add(post1)
             db.flush()
             post2 = Post(author_id=nadia.id, care_circle_id=circle.id,
-                         content="Mom's medicine adherence is at 100% this week! So proud of you 💛",
+                         content="Mom's medicine adherence is at 100% this week! So proud of you.",
                          visibility="care_circle")
             db.add(post2)
             db.flush()
-            db.add(PostComment(post_id=post1.id, author_id=nadia.id, content="So proud of you, Mom! 🥰"))
+            db.add(PostComment(post_id=post1.id, author_id=nadia.id, content="So proud of you, Mom!"))
 
         # ---------- family chat ----------
         family_conv = (
@@ -269,11 +269,11 @@ def seed_all() -> None:
             ])
             db.add_all([
                 Message(conversation_id=family_conv.id, sender_id=nadia.id,
-                        content="Good morning Mom! How did you sleep? ☀️"),
+                        content="Good morning Mom! How did you sleep?"),
                 Message(conversation_id=family_conv.id, sender_id=rahma.id,
                         content="Good morning dear! Slept well, about 7 hours. Heading out for my walk."),
                 Message(conversation_id=family_conv.id, sender_id=nadia.id,
-                        content="Wonderful! Call me if you need anything 💛"),
+                        content="Wonderful! Call me if you need anything."),
             ])
 
         # ---------- AI companion starter ----------
@@ -283,7 +283,7 @@ def seed_all() -> None:
             db.flush()
             db.add_all([
                 AiMessage(conversation_id=conv.id, sender="assistant",
-                          content="Hello Rahima! I'm CareMind, your companion. 💙 "
+                          content="Hello Rahima! I'm CareMind, your companion. "
                                   "How are you feeling today?"),
                 AiMessage(conversation_id=conv.id, sender="user",
                           content="My blood pressure has been a bit high lately. Should I worry?"),
@@ -291,7 +291,7 @@ def seed_all() -> None:
                           content="I looked at your readings, Rahima. They've been trending from about "
                                   "132/84 to 145/90 over two weeks. One reading isn't a diagnosis, but I'd "
                                   "gently suggest mentioning it to Dr. Rahman — I can help you book that. "
-                                  "In the meantime, keep taking Amlodipine as prescribed. 📈"),
+                                  "In the meantime, keep taking Amlodipine as prescribed."),
             ])
             db.add(AiInsight(
                 user_id=rahma.id, insight_type="blood_pressure", severity="info",

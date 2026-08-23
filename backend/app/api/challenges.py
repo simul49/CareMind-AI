@@ -12,19 +12,19 @@ from app.api.deps import get_current_user
 router = APIRouter(prefix="/challenges", tags=["challenges"])
 
 _CHALLENGES = [
-    {"key": "walk", "icon": "🚶", "title": "Gentle 20-minute walk",
+    {"key": "walk", "badge": "Walk", "title": "Gentle 20-minute walk",
      "goal": "A slow stroll outside — even a short one counts.", "category": "activity"},
-    {"key": "water", "icon": "💧", "title": "Drink 6 glasses of water",
+    {"key": "water", "badge": "Water", "title": "Drink 6 glasses of water",
      "goal": "Keep sipping through the day to stay hydrated.", "category": "hydration"},
-    {"key": "stretch", "icon": "🧘", "title": "Morning stretch routine",
+    {"key": "stretch", "badge": "Stretch", "title": "Morning stretch routine",
      "goal": "Five gentle minutes to loosen up.", "category": "activity"},
-    {"key": "mood", "icon": "☀️", "title": "Share a happy moment",
+    {"key": "mood", "badge": "Share", "title": "Share a happy moment",
      "goal": "Tell CareMind or your family one nice thing today.", "category": "mood"},
-    {"key": "friends", "icon": "📞", "title": "Call someone you love",
+    {"key": "friends", "badge": "Call", "title": "Call someone you love",
      "goal": "A short call keeps hearts close.", "category": "social"},
-    {"key": "sleep", "icon": "🌙", "title": "Wind down by 9:30 PM",
+    {"key": "sleep", "badge": "Sleep", "title": "Wind down by 9:30 PM",
      "goal": "Screens off and a warm drink before bed.", "category": "sleep"},
-    {"key": "mind", "icon": "🧠", "title": "5 minutes of slow breathing",
+    {"key": "mind", "badge": "Breathe", "title": "5 minutes of slow breathing",
      "goal": "In through the nose, out slowly — feel the calm.", "category": "mindfulness"},
 ]
 

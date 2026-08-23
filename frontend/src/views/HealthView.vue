@@ -26,8 +26,8 @@ onMounted(async () => {
 });
 
 const labelFor = (t: string) =>
-  ({ blood_pressure: "🩺 Blood pressure", heart_rate: "❤️ Heart rate", sleep: "🌙 Sleep",
-     activity: "🚶 Activity", mood: "😊 Mood", weight: "⚖️ Weight" }[t] || t);
+  ({ blood_pressure: "Blood pressure", heart_rate: "Heart rate", sleep: "Sleep",
+     activity: "Activity", mood: "Mood", weight: "Weight" }[t] || t);
 
 const valText = (m: any) => {
   const v = m.values;
@@ -35,7 +35,7 @@ const valText = (m: any) => {
   if (m.metric_type === "heart_rate") return `${v.bpm} bpm`;
   if (m.metric_type === "sleep") return `${v.sleep_hours} h`;
   if (m.metric_type === "activity") return `${v.steps?.toLocaleString() ?? ""} steps`;
-  if (m.metric_type === "mood") return ["😟", "😔", "😐", "🙂", "😊"][v.mood_level - 1];
+  if (m.metric_type === "mood") return ["Poor", "Low", "Okay", "Good", "Great"][v.mood_level - 1];
   if (m.metric_type === "weight") return `${v.kg} kg`;
   return JSON.stringify(v);
 };
@@ -68,13 +68,13 @@ const submitQuick = async () => {
       <h3 class="text-xl font-extrabold">Quick log</h3>
       <div class="mt-3 grid grid-cols-3 gap-3">
         <button class="card text-center transition hover:-translate-y-0.5" @click="openQuick('bp')">
-          <span class="text-4xl">🩺</span><p class="mt-1 font-extrabold">Blood pressure</p>
+          <span class="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-teal-light text-xs font-extrabold text-teal-dark">BP</span><p class="mt-1 font-extrabold">Blood pressure</p>
         </button>
         <button class="card text-center transition hover:-translate-y-0.5" @click="openQuick('mood')">
-          <span class="text-4xl">😊</span><p class="mt-1 font-extrabold">Feeling</p>
+          <span class="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-teal-light text-xs font-extrabold text-teal-dark">Feel</span><p class="mt-1 font-extrabold">Feeling</p>
         </button>
         <button class="card text-center transition hover:-translate-y-0.5" @click="openQuick('walk')">
-          <span class="text-4xl">🚶</span><p class="mt-1 font-extrabold">Walk</p>
+          <span class="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-teal-light text-xs font-extrabold text-teal-dark">Walk</span><p class="mt-1 font-extrabold">Walk</p>
         </button>
       </div>
     </section>
@@ -90,11 +90,11 @@ const submitQuick = async () => {
       </template>
       <template v-else-if="quickType === 'mood'">
         <h4 class="text-xl font-extrabold">How do you feel?</h4>
-        <div class="mt-3 flex gap-2">
-          <button v-for="(e, i) in ['😟', '😔', '😐', '🙂', '😊']" :key="i"
-                  class="grid h-14 w-14 place-items-center rounded-2xl bg-white text-3xl"
+        <div class="mt-3 grid grid-cols-5 gap-2">
+          <button v-for="(label, i) in ['Poor', 'Low', 'Okay', 'Good', 'Great']" :key="i"
+                  class="rounded-2xl bg-white px-2 py-3 text-sm font-extrabold"
                   :class="{ 'ring-4 ring-teal': form.mood_level === i + 1 }"
-                  @click="form.mood_level = i + 1">{{ e }}</button>
+                  @click="form.mood_level = i + 1">{{ label }}</button>
         </div>
       </template>
       <template v-else>

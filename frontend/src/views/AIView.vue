@@ -18,7 +18,7 @@ const ttsSupported = typeof window !== "undefined" && "speechSynthesis" in windo
 let recognition: any = null;
 
 const chips = [
-  "How is my blood pressure this week? 💙",
+  "How is my blood pressure this week?",
   "I'm feeling a little dizzy lately",
   "Remind me about my medicines",
   "What did I do for exercise this week?",
@@ -53,7 +53,7 @@ function speak(text: string) {
   if (!ttsSupported || !speakOn.value) return;
   try {
     window.speechSynthesis.cancel();
-    const clean = text.replace(/[🤖💙🎵📄🚨]/g, "");
+    const clean = text.replace(/\p{Extended_Pictographic}/gu, "");
     const u = new SpeechSynthesisUtterance(clean);
     u.lang = "en-US";
     u.rate = 0.95;
@@ -124,7 +124,7 @@ const send = async (text?: string) => {
   <div class="flex h-[calc(100vh-180px)] flex-col">
     <div ref="chatsEl" class="flex-1 space-y-3 overflow-y-auto pb-3 pr-1">
       <div v-if="starterVisible" class="rounded-3xl bg-teal p-5 text-white shadow-soft">
-        <p class="text-2xl">🤖</p>
+        <span class="grid h-14 w-14 place-items-center rounded-2xl bg-white/15 text-xl font-extrabold">AI</span>
         <h3 class="mt-1 text-xl font-extrabold">Hi! I'm CareMind</h3>
         <p class="mt-1 text-teal-light">
           I'm your health companion. I know your health records, medicines and care plan —
@@ -136,7 +136,7 @@ const send = async (text?: string) => {
           :class="{ 'bg-white text-teal-dark': speakOn }"
           @click="speakOn = !speakOn"
         >
-          {{ speakOn ? "🔊 Replies spoken aloud" : "🔇 Tap to enable spoken replies" }}
+          {{ speakOn ? "Spoken replies: ON — tap to turn off" : "Tap to hear replies spoken aloud" }}
         </button>
       </div>
 
@@ -159,12 +159,12 @@ const send = async (text?: string) => {
       <button
         v-if="voiceSupported"
         type="button"
-        class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl text-xl transition"
-        :class="listening ? 'animate-pulse bg-rose text-white' : 'bg-white shadow-card'"
+        class="grid h-12 shrink-0 place-items-center rounded-2xl px-4 text-sm font-extrabold transition"
+        :class="listening ? 'animate-pulse bg-rose text-white' : 'bg-white text-ink shadow-card'"
         :title="listening ? 'Listening… tap to stop' : 'Speak to CareMind'"
         @click="toggleMic"
       >
-        🎤
+        Talk
       </button>
       <input v-model="input" class="input flex-1" placeholder="Type a message…" />
       <button type="submit" class="btn-primary px-6" :disabled="loading">Send</button>

@@ -82,7 +82,6 @@ onMounted(async () => {
     </button>
 
     <div v-if="!loading && !patients.length" class="card py-10 text-center">
-      <p class="text-4xl">🩺</p>
       <p class="mt-2 font-extrabold">No patients assigned yet</p>
       <p class="text-sm text-ink/60">Patient summaries will appear here once linked.</p>
     </div>
