@@ -7,16 +7,33 @@ const route = useRoute();
 const router = useRouter();
 const auth = useAuthStore();
 
-const tabs = [
-  { name: "home", label: "Home", emoji: "🏠" },
-  { name: "health", label: "Health", emoji: "❤️" },
-  { name: "ai", label: "CareMind", emoji: "🤖" },
-  { name: "moments", label: "Moments", emoji: "👨‍👩‍👧" },
-  { name: "profile", label: "Me", emoji: "👤" },
-];
+const roleTabs: Record<string, { name: string; label: string; emoji: string }[]> = {
+  elder: [
+    { name: "home", label: "Home", emoji: "🏠" },
+    { name: "health", label: "Health", emoji: "❤️" },
+    { name: "ai", label: "CareMind", emoji: "🤖" },
+    { name: "moments", label: "Moments", emoji: "👨‍👩‍👧" },
+    { name: "profile", label: "Me", emoji: "👤" },
+  ],
+  family: [
+    { name: "home", label: "Home", emoji: "🏠" },
+    { name: "chat", label: "Chat", emoji: "💬" },
+    { name: "moments", label: "Moments", emoji: "👨‍👩‍👧" },
+    { name: "profile", label: "Me", emoji: "👤" },
+  ],
+  caregiver: [
+    { name: "home", label: "Home", emoji: "🏠" },
+    { name: "chat", label: "Chat", emoji: "💬" },
+    { name: "moments", label: "Moments", emoji: "👨‍👩‍👧" },
+    { name: "profile", label: "Me", emoji: "👤" },
+  ],
+};
+
+const tabs = computed(() => roleTabs[auth.user?.role as string] || roleTabs.elder);
+const isElder = computed(() => auth.user?.role === "elder");
 
 const activeTab = computed(() => route.name as string);
-const pageTitle = computed(() => tabs.find((t) => t.name === activeTab.value)?.label || "");
+const pageTitle = computed(() => tabs.value.find((t) => t.name === activeTab.value)?.label || "");
 
 const initials = computed(() =>
   (auth.user?.full_name || "U").split(" ").map((s) => s[0]).slice(0, 2).join(""),
@@ -36,7 +53,7 @@ const initials = computed(() =>
           <p class="text-lg font-extrabold leading-tight">{{ auth.user?.full_name }}</p>
         </div>
       </div>
-      <button class="rounded-2xl bg-white px-4 py-2 text-lg shadow-card" title="Notifications">🔔</button>
+      <RouterLink to="/notifications" class="rounded-2xl bg-white px-4 py-2 text-lg shadow-card" title="Notifications">🔔</RouterLink>
     </header>
 
     <!-- Main -->
@@ -48,8 +65,9 @@ const initials = computed(() =>
       </router-view>
     </main>
 
-    <!-- SOS floating button -->
+    <!-- SOS floating button (elder only) -->
     <button
+      v-if="isElder"
       class="pulse-sos fixed bottom-24 right-5 z-30 grid h-16 w-16 place-items-center rounded-full bg-rose text-3xl text-white shadow-soft"
       title="SOS — Emergency"
       @click="router.push('/app/emergency')"

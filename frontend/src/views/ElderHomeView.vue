@@ -109,6 +109,23 @@ const logMood = async (level: number) => {
         </div>
       </section>
 
+      <!-- Quick actions -->
+      <section>
+        <h3 class="text-xl font-extrabold">Family & reports</h3>
+        <div class="mt-3 grid grid-cols-2 gap-3">
+          <button class="card flex flex-col items-center gap-1.5 py-4 transition hover:-translate-y-0.5 hover:shadow-card" @click="router.push('/app/chat')">
+            <span class="text-3xl">💬</span>
+            <span class="font-extrabold">Family chat</span>
+            <span class="text-xs text-ink/50">Stay close</span>
+          </button>
+          <button class="card flex flex-col items-center gap-1.5 py-4 transition hover:-translate-y-0.5 hover:shadow-card" @click="router.push('/app/reports')">
+            <span class="text-3xl">📄</span>
+            <span class="font-extrabold">My reports</span>
+            <span class="text-xs text-ink/50">AI explains them</span>
+          </button>
+        </div>
+      </section>
+
       <!-- Today's Health -->
       <section>
         <div class="flex items-center justify-between">

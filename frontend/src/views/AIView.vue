@@ -9,6 +9,14 @@ const loading = ref(false);
 const chatsEl = ref<HTMLElement | null>(null);
 const starterVisible = ref(true);
 
+// ---- Voice ----
+const listening = ref(false);
+const speakOn = ref(false);
+const voiceSupported =
+  typeof window !== "undefined" && !!(window as any).SpeechRecognition || !!(window as any).webkitSpeechRecognition;
+const ttsSupported = typeof window !== "undefined" && "speechSynthesis" in window;
+let recognition: any = null;
+
 const chips = [
   "How is my blood pressure this week? 💙",
   "I'm feeling a little dizzy lately",
@@ -28,11 +36,58 @@ onMounted(async () => {
   } catch (e) {
     console.error(e);
   }
+  // Prefilled question (e.g. from a report detail → "Explain it to me")
+  const prefill = sessionStorage.getItem("caremind_question");
+  if (prefill) {
+    sessionStorage.removeItem("caremind_question");
+    setTimeout(() => send(prefill), 700);
+  }
 });
 
 const scrollDown = async () => {
   await nextTick();
   chatsEl.value?.scrollTo({ top: chatsEl.value.scrollHeight, behavior: "smooth" });
+};
+
+function speak(text: string) {
+  if (!ttsSupported || !speakOn.value) return;
+  try {
+    window.speechSynthesis.cancel();
+    const clean = text.replace(/[🤖💙🎵📄🚨]/g, "");
+    const u = new SpeechSynthesisUtterance(clean);
+    u.lang = "en-US";
+    u.rate = 0.95;
+    u.pitch = 1.05;
+    window.speechSynthesis.speak(u);
+  } catch (e) {
+    /* voice is a bonus */
+  }
+}
+
+function toggleMic() {
+  if (listening.value) {
+    recognition?.stop();
+    return;
+  }
+  if (!voiceSupported) return;
+  const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+  recognition = recognition || new SR();
+  recognition.lang = "en-US";
+  recognition.interimResults = false;
+  recognition.onresult = (e: any) => {
+    const t = e.results[0][0].transcript;
+    input.value = t;
+    listenAndSpeak();
+    send(t);
+  };
+  recognition.onerror = () => (listening.value = false);
+  recognition.onend = () => (listening.value = false);
+  listening.value = true;
+  recognition.start();
+}
+
+const listenAndSpeak = () => {
+  if (!speakOn.value) speakOn.value = true;
 };
 
 const send = async (text?: string) => {
@@ -55,6 +110,7 @@ const send = async (text?: string) => {
       content: res.reply,
       created_at: new Date().toISOString(),
     });
+    speak(res.reply);
   } catch (e: any) {
     messages.value.push({ id: Date.now() + 2, sender: "assistant", content: "Sorry, I couldn't reach my brain. Please try again.", created_at: new Date().toISOString() });
   } finally {
@@ -74,6 +130,14 @@ const send = async (text?: string) => {
           I'm your health companion. I know your health records, medicines and care plan —
           and I'm here to help you understand them. I never replace your doctor.
         </p>
+        <button
+          v-if="ttsSupported"
+          class="mt-3 rounded-2xl bg-white/15 px-4 py-2 text-sm font-extrabold"
+          :class="{ 'bg-white text-teal-dark': speakOn }"
+          @click="speakOn = !speakOn"
+        >
+          {{ speakOn ? "🔊 Replies spoken aloud" : "🔇 Tap to enable spoken replies" }}
+        </button>
       </div>
 
       <div v-for="m in messages" :key="m.id"
@@ -92,8 +156,21 @@ const send = async (text?: string) => {
     </div>
 
     <form class="flex gap-2" @submit.prevent="send()">
+      <button
+        v-if="voiceSupported"
+        type="button"
+        class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl text-xl transition"
+        :class="listening ? 'animate-pulse bg-rose text-white' : 'bg-white shadow-card'"
+        :title="listening ? 'Listening… tap to stop' : 'Speak to CareMind'"
+        @click="toggleMic"
+      >
+        🎤
+      </button>
       <input v-model="input" class="input flex-1" placeholder="Type a message…" />
       <button type="submit" class="btn-primary px-6" :disabled="loading">Send</button>
     </form>
+    <p v-if="listening" class="mt-1 text-center text-xs font-bold text-rose animate-pulse">
+      Listening… speak now, then stop.
+    </p>
   </div>
 </template>

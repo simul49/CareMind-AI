@@ -16,7 +16,7 @@ const submit = async () => {
   loading.value = true;
   try {
     await auth.login(email.value.trim(), password.value);
-    router.push("/app/home");
+    router.push(auth.user?.role === "doctor" ? "/app/doctor" : "/app/home");
   } catch (e: any) {
     error.value = e.message;
   } finally {

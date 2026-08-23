@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.core.database import Base, engine
-from app.api import auth, users, health, medicines, ai, emergency, care, doctors, caregivers, reports
+from app.api import auth, users, health, medicines, ai, emergency, care, doctors, caregivers, reports, notifications
 from app.services.seed import seed_all
 
 app = FastAPI(
@@ -48,5 +48,6 @@ for router in (
     doctors.router,
     caregivers.router,
     reports.router,
+    notifications.router,
 ):
     app.include_router(router)
