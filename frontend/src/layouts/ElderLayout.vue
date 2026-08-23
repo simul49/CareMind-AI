@@ -1,11 +1,34 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, onMounted, onUnmounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
+import { api } from "@/services/api";
 
 const route = useRoute();
 const router = useRouter();
 const auth = useAuthStore();
+
+const badgeCount = ref(0);
+let badgeTimer: ReturnType<typeof setInterval> | null = null;
+
+const refreshBadge = async () => {
+  try {
+    const res = await api("/notifications");
+    badgeCount.value = res.items.filter(
+      (n: any) => n.severity === "critical" || (n.type === "insight" && !n.is_read),
+    ).length;
+  } catch {
+    badgeCount.value = 0;
+  }
+};
+
+onMounted(() => {
+  refreshBadge();
+  badgeTimer = setInterval(refreshBadge, 30000);
+});
+onUnmounted(() => {
+  if (badgeTimer) clearInterval(badgeTimer);
+});
 
 const roleTabs: Record<string, { name: string; label: string; emoji: string }[]> = {
   elder: [
@@ -53,7 +76,13 @@ const initials = computed(() =>
           <p class="text-lg font-extrabold leading-tight">{{ auth.user?.full_name }}</p>
         </div>
       </div>
-      <RouterLink to="/notifications" class="rounded-2xl bg-white px-4 py-2 text-lg shadow-card" title="Notifications">🔔</RouterLink>
+      <RouterLink to="/notifications" class="relative rounded-2xl bg-white px-4 py-2 text-lg shadow-card" title="Notifications">
+        🔔
+        <span
+          v-if="badgeCount > 0"
+          class="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-rose px-1 text-[0.65rem] font-extrabold text-white"
+        >{{ badgeCount > 9 ? "9+" : badgeCount }}</span>
+      </RouterLink>
     </header>
 
     <!-- Main -->

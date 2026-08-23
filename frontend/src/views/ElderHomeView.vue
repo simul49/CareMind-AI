@@ -23,6 +23,8 @@ const insights = ref<any[]>([]);
 const overview = ref<any>(null);
 const patients = ref<any[]>([]);
 const mood = ref<number | null>(null);
+const challenge = ref<any>(null);
+const challengeBusy = ref(false);
 const loading = ref(true);
 
 const nextDose = computed(() => doses.value.find((d) => d.status === "pending") || doses.value[0] || null);
@@ -30,14 +32,16 @@ const nextDose = computed(() => doses.value.find((d) => d.status === "pending") 
 onMounted(async () => {
   try {
     if (auth.user?.role === "elder") {
-      const [t, d, i] = await Promise.all([
+      const [t, d, i, c] = await Promise.all([
         api("/health/today"),
         api("/medicines/today"),
         api("/ai/insights"),
+        api("/challenges/today").catch(() => null),
       ]);
       today.value = t;
       doses.value = d;
       insights.value = i;
+      challenge.value = c;
     } else if (auth.user?.role === "family" || auth.user?.role === "caregiver") {
       overview.value = await api("/caregiver/overview");
     } else if (auth.user?.role === "doctor") {
@@ -58,6 +62,16 @@ const takeDose = async (logId: number) => {
 const logMood = async (level: number) => {
   mood.value = level;
   await api("/health/mood", { method: "POST", body: { mood_level: level } });
+};
+
+const completeChallenge = async () => {
+  if (!challenge.value || challenge.value.done || challengeBusy.value) return;
+  challengeBusy.value = true;
+  try {
+    challenge.value = await api("/challenges/today/complete", { method: "POST" });
+  } finally {
+    challengeBusy.value = false;
+  }
 };
 </script>
 
@@ -105,6 +119,41 @@ const logMood = async (level: number) => {
             </button>
             <button v-else class="btn-ghost flex-1">Taken {{ fmtTime(nextDose.taken_at) }} ✓</button>
             <button class="btn-ghost" @click="router.push('/app/medicines')">All doses</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Today's wellness challenge -->
+      <section v-if="challenge">
+        <div class="flex items-center justify-between">
+          <h3 class="text-xl font-extrabold">Today's challenge</h3>
+          <span class="rounded-xl bg-teal-light px-3 py-1 text-xs font-extrabold text-teal-dark">
+            {{ challenge.week_done }}/7 this week
+          </span>
+        </div>
+        <div class="card mt-3 bg-gradient-to-br from-teal-light/60 to-white">
+          <div class="flex items-center gap-4">
+            <span class="grid h-16 w-16 shrink-0 place-items-center rounded-3xl bg-white text-4xl shadow-card">
+              {{ challenge.icon }}
+            </span>
+            <div class="flex-1">
+              <p class="text-[0.7rem] font-extrabold uppercase tracking-wide text-teal-dark">{{ challenge.category }}</p>
+              <h4 class="text-xl font-extrabold leading-snug">{{ challenge.title }}</h4>
+              <p class="mt-0.5 text-sm text-ink/60">{{ challenge.goal }}</p>
+            </div>
+          </div>
+          <div class="mt-4">
+            <button
+              v-if="!challenge.done"
+              class="btn-primary w-full"
+              :disabled="challengeBusy"
+              @click="completeChallenge"
+            >
+              {{ challengeBusy ? "Completing…" : "✓ I did it!" }}
+            </button>
+            <div v-else class="rounded-2xl bg-teal px-4 py-3 text-center font-extrabold text-white">
+              ✅ Done today — beautiful!
+            </div>
           </div>
         </div>
       </section>

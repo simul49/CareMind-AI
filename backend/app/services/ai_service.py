@@ -7,6 +7,8 @@ Works in two modes:
 
 import json
 import random
+import shutil
+import subprocess
 
 import httpx
 from sqlalchemy.orm import Session
@@ -89,6 +91,31 @@ def _build_context(db: Session, user_id: int) -> str:
     return "\n".join(lines) if lines else "No recent health data recorded."
 
 
+def _curl_chat(url: str, payload: dict) -> dict | None:
+    """Fallback transport via curl — some Windows Python builds fail TLS
+    (OpenSSL UNEXPECTED_EOF) against certain providers' CDNs, while curl
+    (Schannel) succeeds. Cheap insurance for a hackathon demo."""
+    exe = shutil.which("curl") or "curl"
+    try:
+        proc = subprocess.run(
+            [
+                exe, "-sS", "--max-time", str(int(settings.AI_TIMEOUT_SECONDS)),
+                "-X", "POST", url,
+                "-H", f"Authorization: Bearer {settings.AI_API_KEY}",
+                "-H", "Content-Type: application/json",
+                "--data-binary", json.dumps(payload),
+            ],
+            capture_output=True,
+            text=True,
+            timeout=int(settings.AI_TIMEOUT_SECONDS) + 5,
+        )
+        if proc.returncode != 0:
+            return None
+        return json.loads(proc.stdout)
+    except Exception:
+        return None
+
+
 def _live_chat(messages: list[dict]) -> str | None:
     if not settings.AI_API_KEY:
         return None
@@ -100,10 +127,15 @@ def _live_chat(messages: list[dict]) -> str | None:
         "temperature": 0.6,
         "max_tokens": 600,
     }
+    data = None
     try:
         resp = httpx.post(url, headers=headers, json=payload, timeout=settings.AI_TIMEOUT_SECONDS)
         resp.raise_for_status()
-        return resp.json()["choices"][0]["message"]["content"].strip()
+        data = resp.json()
+    except Exception:
+        data = _curl_chat(url, payload)
+    try:
+        return data["choices"][0]["message"]["content"].strip()
     except Exception:
         return None
 

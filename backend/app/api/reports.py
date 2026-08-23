@@ -19,6 +19,7 @@ from app.core.config import settings
 from app.models.models import AiInsight, HealthReport, ReportResult, User
 from app.api.deps import get_current_user
 from app.schemas.common import ReportOut
+from app.services.ai_service import _live_chat
 
 router = APIRouter(prefix="/reports", tags=["reports"])
 
@@ -40,6 +41,30 @@ def _parse_value(text: str) -> float | None:
     try:
         return float(text)
     except (ValueError, TypeError):
+        return None
+
+
+def _enrich_summary(report: HealthReport, findings: list[dict]) -> str | None:
+    """Ask the live AI to reword the analysis for a 70+ reader (no-op without a key)."""
+    if not settings.AI_API_KEY:
+        return None
+    rows = "\n".join(
+        f"- {f['item']}: {f['value']} {f['unit']} (typical {f['range']} — {f['flag']})"
+        for f in findings
+    )
+    msgs = [
+        {"role": "system", "content": (
+            "You are CareMind, a caring health assistant explaining lab results to a 70+ year old. "
+            "Write a short, warm explanation (max 110 words) in plain language with short sentences. "
+            "Mention any flagged values gently, state clearly this is not a diagnosis, and suggest "
+            "discussing them with the doctor. Use a friendly emoji at the end."
+        )},
+        {"role": "user", "content": f"Report '{report.title}':\n{rows}"},
+    ]
+    try:
+        reply = _live_chat(msgs)
+        return reply if reply and reply.strip() else None
+    except Exception:
         return None
 
 
@@ -100,6 +125,13 @@ def _analyze(report: HealthReport) -> None:
             db.close()
     else:
         summary = "All values are within the typical reference range. Keep up the great routine!"
+
+    # Live-AI enrichment: when an AI key is configured, rewrite the summary in
+    # warm, plain language for the elder. Falls back to the rule-based summary.
+    enriched = _enrich_summary(report, findings)
+    if enriched:
+        summary = enriched
+
     report.summary = summary
     report.status = "analyzed"
     report.analyzed_at = datetime.utcnow()

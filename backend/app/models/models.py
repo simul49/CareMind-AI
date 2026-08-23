@@ -599,6 +599,16 @@ class Notification(Base, TimestampMixin):
     related_id = Column(Integer)
 
 
+class WellnessChallengeLog(Base):
+    """One row per completed daily wellness challenge (Day 3 feature)."""
+    __tablename__ = "wellness_challenge_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    challenge_key = Column(String(64), nullable=False)
+    completed_at = Column(DateTime, default=datetime.utcnow)
+
+
 class AuditLog(Base):
     __tablename__ = "audit_logs"
 
